@@ -11,16 +11,11 @@ class PostForm(forms.ModelForm):
             }
         )
     )
-    image = forms.ImageField(
-        required=False,
-        widget=forms.ClearableFileInput(attrs={
-            'multiple': True
-        })
-    )
+    image = forms.ImageField(required=False,)
     
     class Meta:
         model = Post
-        fields = ['body']
+        fields = ['body', 'image']
         
 class CommentForm(forms.ModelForm):
     comment = forms.CharField(

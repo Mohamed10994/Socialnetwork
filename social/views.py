@@ -31,16 +31,10 @@ class PostListView(LoginRequiredMixin, View):
             author__profile__followers__in=[logged_in_user.id]    
         ).order_by('-created_on')
         form = PostForm(request.POST, request.FILES)
-        files = request.FILES.getlist('images')
 
         if form.is_valid():
             new_post = form.save(commit=False)
             new_post.author = request.user  
-            new_post.save()
-        for f in files:
-            img = Post(image=f)
-            img.save()
-            new_post.image.add(img)
             new_post.save()
         
         context = {

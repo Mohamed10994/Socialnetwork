@@ -1,5 +1,6 @@
 {% extends 'landing/base.html' %}
 {% load crispy_forms_tags %}
+
 {% block content %}
 <div class="container">
     <div class="row justify-content-center mt-3">
@@ -33,12 +34,13 @@
                 </p>
             </div>
             <div class="position-relative">
-                {% if post.image.count > 0 %}
-                    <img src="{{ img.image.url }}" class="post-image">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" class="post-image">
                 {% endif %}
                 <p>{{ post.body }}</p>
                 <a href="{% url 'social:post-detail' post.pk %}" class="stretched-link"></a>
             </div>
+
             <div class="d-flex flex-row">
                 <form method="POST" action="{% url 'social:like' post.pk%}">
                     {% csrf_token %}
