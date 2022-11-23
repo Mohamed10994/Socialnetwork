@@ -1,3 +1,11 @@
 {
-  "cSpell.words": ["allauth", "buton", "csrftoken", "socialaccount", "xmlhttp"]
+  "cSpell.words": [
+    "allauth",
+    "buton",
+    "csrftoken",
+    "shareform",
+    "socialaccount",
+    "socialnetwork",
+    "xmlhttp"
+  ]
 }
