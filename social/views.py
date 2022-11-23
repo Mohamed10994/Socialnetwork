@@ -63,7 +63,7 @@ class PostDetailView(LoginRequiredMixin, View):
         post = Post.objects.get(pk=pk)
         form = CommentForm()
         
-        comments = Comment.objects.filter(comment=post).order_by('-created_on')
+        comments = Comment.objects.filter(post=post)
         
         context = {
             'post': post,
@@ -82,15 +82,31 @@ class PostDetailView(LoginRequiredMixin, View):
             new_comment.post = post
             new_comment.save()
             
-        comments = Comment.objects.filter(comment=post).order_by('-created_on')
+        comments = Comment.objects.filter(post=post)
         notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=post.author, post=post)
         
         context = {
             'post': post,
             'form': form,
-            'comment': comments,
+            'comments': comments,
         }
         return render(request, 'social/post_detail.html', context)
+    
+class CommentReplyView(LoginRequiredMixin, View):
+    def post(self, request, post_pk, pk, *args, **kwargs):
+        post = Post.objects.get(pk=post_pk)
+        parent_comment = Comment.objects.get(pk=pk)
+        form = CommentForm(request.POST)
+        
+        if form.is_valid():
+            new_comment = form.save(commit=False)
+            new_comment.author = request.user
+            new_comment.post = post
+            new_comment.parent = parent_comment
+            new_comment.save()
+
+        notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=parent_comment.author, comment=new_comment)
+        return redirect('social:post-detail', pk=post_pk)
  
 class PostEditView(LoginRequiredMixin, UserPassesTestMixin ,UpdateView):
     model = Post
@@ -135,6 +151,7 @@ class SharedPostView(View):
             new_post.save()
             
         return redirect('social:post-list')
+    
 
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Comment

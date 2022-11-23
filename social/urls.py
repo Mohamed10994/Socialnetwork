@@ -12,7 +12,7 @@ urlpatterns = [
     path('post/<int:post_pk>/comment/<int:pk>/like', AddCommentLikes.as_view(), name='comment-like'),
     
     path('post/<int:pk>/like', AddLike.as_view(), name='like'),
-    path('post/<int:post_pk>/comment/<int:pk>/like', AddCommentDislike.as_view(), name='comment-like'),
+    path('post/<int:post_pk>/comment/<int:pk>/like', AddCommentDislike.as_view(), name='comment-dislike'),
     
     path('post/<int:pk>/dislike', AddDislike.as_view(), name='dislike'),
     path('post/<int:post_pk>/comment/reply/<int:pk>', CommentReplyView.as_view(), name='comment-reply'),
