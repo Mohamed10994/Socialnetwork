@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import Post, Comment, UserProfile,Notification, ThreadModel, MessageModel, Image
-from .forms import PostForm, CommentForm, ThreadForm, MessageForm, SharedForm
+from .models import Post, Comment, UserProfile,Notification, ThreadModel, MessageModel, Image, Tag
+from .forms import PostForm, CommentForm, ThreadForm, MessageForm, SharedForm, ExploreForm
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, DeleteView
@@ -43,6 +43,7 @@ class PostListView(LoginRequiredMixin, View):
             new_post = form.save(commit=False)
             new_post.author = request.user  
             new_post.save()
+            new_post.create_tags()
             
             for f in files:
                 img = Image(image=f)
@@ -81,6 +82,7 @@ class PostDetailView(LoginRequiredMixin, View):
             new_comment.author = request.user
             new_comment.post = post
             new_comment.save()
+            new_comment.create_tags()
             
         comments = Comment.objects.filter(post=post)
         notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=post.author, post=post)
@@ -213,26 +215,7 @@ class AddCommentDislike(LoginRequiredMixin, View):
         next = request.POST.get('next', '/social')
         return HttpResponseRedirect(next)
             
-class CommentReplyView(LoginRequiredMixin, View):
-    def post(self, request, post_pk, pk, *args, **kwargs):
-        post = Post.objects.get(pk=post_pk)
-        parent_comment = Comment.objects.get(pk=pk)
-        form = CommentForm(request.POST)
-        
-        if form.is_valid():
-            new_comment = form.save(commit=False)
-            new_comment.author = request.user
-            new_comment.post = post
-            new_comment.parent = parent_comment
-            new_comment.save()
-        comments = Comment.objects.filter(comment=post).order_by('-created_on')
-        context = {
-            'post': post,
-            'form': form,
-            'comments': comments
-        }
-        
-        return redirect('social:post-detail', context)
+
     
 class ProfileView(View):
     def get(self, request, pk, *args, **kwargs):
@@ -456,3 +439,45 @@ class ThreadView(View):
             'message_list': message_list
         }
         return render(request, 'social/thread.html', context)
+    
+class Explore(View):
+    def get(self, request, *args, **kwargs):
+        explore_form =ExploreForm()
+        query = self.request.GET.get('query')
+        tag = Tag.objects.filter(name=query).first()
+        share_form = SharedForm()
+        if tag:
+            posts = Post.objects.filter(tags__in=[tag])
+        else:
+            posts = Post.objects.all()
+        
+        context = {
+            'tag': tag,
+            'posts': posts,
+            'shareform': share_form,
+            'explore_form': explore_form
+        }
+        return render(request, 'social/explore.html', context)
+    def post(self, request, *args, **kwargs):
+        explore_form = ExploreForm(request.POST)
+        share_form = SharedForm()
+        if explore_form.is_valid():
+            query = explore_form.cleaned_data['query']
+            tag = Tag.objects.filter(name=query).first()
+            posts = None
+            if tag:
+                posts = Post.objects.filter(tags__in=[tag])
+            if posts:
+                context = {
+                    'tag': tag,
+                    'shareform': share_form,
+                    'posts': posts
+                }
+            else:
+                context = {
+                    'tag': tag,
+                    'shareform': share_form,
+                }
+            return HttpResponseRedirect(f'/social/explore?query={query}')
+        return HttpResponseRedirect('/social/explore/', context)
+        

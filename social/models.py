@@ -14,6 +14,30 @@ class Post(models.Model):
     shared_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='+')
     likes = models.ManyToManyField(User, blank=True, related_name='likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='dislikes')
+    tags = models.ManyToManyField('Tag', blank=True)
+    
+    def create_tags(self):
+        for word in self.body.split():
+            if (word[0] == '#'):
+                tag = Tag.objects.filter(name=word[1:]).first()
+                if tag:
+                    self.tags.add(tag.pk)
+                else:
+                    tag = Tag(name=word[1:])
+                    tag.save()
+                    self.tags.add(tag.pk)
+                self.save()
+        if self.shared_body:
+            for word in self.shared_body.split():
+                if (word[0] == '#'):
+                    tag = Tag.objects.filter(name=word[1:]).first()
+                    if tag:
+                        self.tags.add(tag.pk)
+                    else:
+                        tag = Tag(name=word[1:])
+                        tag.save()
+                        self.tags.add(tag.pk)
+                    self.save()        
 
     class Meta: 
         ordering = ['-created_on', '-shared_on']    
@@ -27,6 +51,19 @@ class Comment(models.Model):
     likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='comment_dislikes')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
+    tags = models.ManyToManyField('Tag', blank=True)
+    
+    def create_tags(self):
+        for word in self.comment.split():
+            if (word[0] == '#'):
+                tag = Tag.objects.get(name=word[1:])
+                if tag:
+                    self.tags.add(tag.pk)
+                else:
+                    tag = Tag(name=word[1:])
+                    tag.save()
+                    self.tags.add(tag.pk)
+                self.save()
     
     @property
     def children(self):
@@ -36,7 +73,7 @@ class Comment(models.Model):
         if self.parent is None:
             return True
         return False
-
+    
 class UserProfile(models.Model):
     user = models.OneToOneField(User, primary_key=True, verbose_name='user', related_name='profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=30, blank=True, null=True)
@@ -89,3 +126,6 @@ class MessageModel(models.Model):
     
 class Image(models.Model):
     image = models.ImageField(upload_to='uploads/post_photos', blank=True, null=True)
+    
+class Tag(models.Model):
+    name = models.CharField(max_length=255)

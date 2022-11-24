@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, AddDislike, UserSearch, ListFollowers, AddCommentLikes, AddCommentDislike, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, CreateThread, ThreadView, CreateMessage, SharedPostView
+from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, AddDislike, UserSearch, ListFollowers, AddCommentLikes, AddCommentDislike, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, CreateThread, ThreadView, CreateMessage, SharedPostView, Explore
 
 app_name = 'social'
  
@@ -34,5 +34,8 @@ urlpatterns = [
     path('inbox/<int:pk>/', ThreadView.as_view(), name='thread'),
     
     path('inbox/<int:pk>/create-message/', CreateMessage.as_view(), name='create-message'),
+    
+    path('explore/', Explore.as_view(), name='explore'),
+
     
 ]
