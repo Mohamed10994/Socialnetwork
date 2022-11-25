@@ -344,22 +344,30 @@ class UserSearch(View):
         return render(request, 'social/search.html', context)
     
 class PostNotification(View):
-    def get(self, request, notification_pk, object_pk, *args, **kwargs):
+    def get(self, request, notification_pk, post_pk, *args, **kwargs):
         notification = Notification.objects.get(pk=notification_pk)
-        post = Post.objects.get(pk=object_pk)
+        post = Post.objects.get(pk=post_pk)
         
         notification.user_has_seen = True
         notification.save()
-        return redirect('social:post-detail', pk=object_pk)
+        return redirect('social:post-detail', pk=post_pk)
     
 class FollowNotification(View):
-    def get(self, request, notification_pk, object_pk, *args, **kwargs):
+    def get(self, request, notification_pk, profile_pk, *args, **kwargs):
         notification = Notification.objects.get(pk=notification_pk)
-        profile =UserProfile.objects.get(pk=object_pk)
+        profile =UserProfile.objects.get(pk=profile_pk)
         notification.user_has_seen = True
         notification.save()
         
-        return redirect('social:profile', pk=object_pk)
+        return redirect('social:profile', pk=profile_pk)
+    
+class ThreadNotification(View):
+    def get(self, request,notification_pk, object_k, *args, **kwargs):
+        notification = Notification.objects.get(pk=notification_pk)
+        thread = ThreadModel.objects.get(pk=object_k)
+        notification.user_has_seen = True
+        notification.save()
+        return redirect('social:thread', pk=object_k) 
     
 class RemoveNotification(View):
     def delete(self, request, notification_pk, *args, **kwargs):

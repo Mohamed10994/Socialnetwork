@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, AddDislike, UserSearch, ListFollowers, AddCommentLikes, AddCommentDislike, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, CreateThread, ThreadView, CreateMessage, SharedPostView, Explore
+from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, AddDislike, UserSearch, ListFollowers, AddCommentLikes, AddCommentDislike, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, CreateThread, ThreadView, CreateMessage, SharedPostView, Explore, ThreadNotification
 
 app_name = 'social'
  
@@ -23,8 +23,9 @@ urlpatterns = [
     path('profile/<int:pk>/followers/remove', RemoveFollower.as_view(), name='remove-follower'),
     path('profile/<int:pk>/followers', ListFollowers.as_view(), name='followers-list'),
     path('search/', UserSearch.as_view(), name='profile-search'),
-    path('notification/<int:notification_pk>/post/<int:object_pk>', PostNotification.as_view(), name='post-notification'),
-    path('notification/<int:notification_pk>/follow/<int:object_pk>', FollowNotification.as_view(), name='follow-notification'),
+    path('notification/<int:notification_pk>/post/<int:post_pk>', PostNotification.as_view(), name='post-notification'),
+    path('notification/<int:notification_pk>/follow/<int:profile_pk>', FollowNotification.as_view(), name='follow-notification'),
+    path('notification/<int:notification_pk>/thread/<int:object_pk>', ThreadNotification.as_view(), name='thread-notification'),
     path('notification/delete/<int:notification_pk>', RemoveNotification.as_view(), name='notification-delete'),
     
     path('inbox/', ListThreads.as_view(), name='inbox'),

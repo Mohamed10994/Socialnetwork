@@ -1,7 +1,7 @@
 {% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="container">
+<div class="">
     <div class="profile-page tx-13">
         <div class="row">
             <div class="col-12 grid-margin">
@@ -120,9 +120,7 @@
                                     <div class="d-flex align-items-center">
                                         <img class="img-xs rounded-circle"
                                             src="{{ post.author.profile.picture.url }}" alt="">
-                                            <p class="ml-3">
-                                                {{ post.author }}
-                                            </p>
+                                            <p class="ml-3"> {{ post.author }} </p>
                                             <p class="tx-11 text-muted ml-3"> {{ post.created_on }}</p>
                                     </div>
                                 </div>
