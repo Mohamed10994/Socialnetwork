@@ -19,14 +19,15 @@ class PostListView(LoginRequiredMixin, View):
         posts = Post.objects.filter(
             author__profile__followers__in=[logged_in_user.id]    
         )
-        
+
         form = PostForm()
         share_form = SharedForm()
-        
+
         context = {
             'post_list': posts,
             'shareform': share_form,
             'form': form,
+
         }
         return render(request, 'social/post_list.html', context)
     
@@ -167,7 +168,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return self.request.user == comment.author
     
 class AddCommentLikes(LoginRequiredMixin, View):
-    def post(self, request, post_pk, pk, *args, **kwargs):
+    def post(self, request, pk, *args, **kwargs):
         comment = Comment.objects.get(pk=pk)
         
         is_dislike = False
@@ -180,7 +181,7 @@ class AddCommentLikes(LoginRequiredMixin, View):
             comment.dislikes.remove(request.user)
         is_like = False
         
-        for like in comment.like.all():
+        for like in comment.likes.all():
             if like == request.user:
                 is_like = True
                 break
@@ -189,11 +190,11 @@ class AddCommentLikes(LoginRequiredMixin, View):
             notification = Notification.objects.create(notification_type=1, form_user=request.user, to_user=comment.author, comment=comment)
         if is_like:
             comment.likes.remove(request.user)
-        next = request.POST.get('next', '/social')
+        next = request.POST.get('next', '/  ')
         return HttpResponseRedirect(next)
 
 class AddCommentDislike(LoginRequiredMixin, View):
-    def post(self, request, post_pk, pk, *args, **kwargs):
+    def post(self, request, pk, *args, **kwargs):
         comment = Comment.objects.get(pk=pk)
         is_like = False
         for like in comment.likes.all():
@@ -212,7 +213,7 @@ class AddCommentDislike(LoginRequiredMixin, View):
         
         if is_dislike:
             comment.dislikes.remove(request.user)
-        next = request.POST.get('next', '/social')
+        next = request.POST.get('next', '/')
         return HttpResponseRedirect(next)
             
 
@@ -233,13 +234,14 @@ class ProfileView(View):
                 is_following = False
                 
         number_of_followers = len(followers)
-        
+        followers = profile.followers.all()
         context = {
             'user': user,
             'profile': profile, 
             'posts': posts,
             'is_following': is_following,
             'number_of_followers': number_of_followers,
+            'followers': followers
         }
         return render(request, 'social/profile.html', context)
         

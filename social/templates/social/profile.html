@@ -1,108 +1,226 @@
-{% extends 'landing/base.html' %}
+{% extends 'social/base.html' %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class="container">
-    <div class="row mt-5">
-        <div class="col-md-3 col-sm-6">
-            <a href="{% url 'social:post-list' %}" class="btn btn-light">Back to Feed</a>
-        </div>
-    </div>
-    <div class="row justify-content-center mt-5">
-        <div class="card col-md-8 col-sm-12 shadow-sm px-5 pt-3">
-            <div class="text-center">
-                <img src="{{ profile.picture.url }}" class="rounded-circle" width="100" height="100" /> 
-                {% if profile.user %}
-                <h3 class="py-4">{{ profile.name }}
-                    <span>
-                        {% if request.user == user %}
-                        <a href="{% url 'social:profile-edit' profile.pk %}" class="edit-color"><i class="far fa-edit"></i></a>
+    <div class="profile-page tx-13">
+        <div class="row">
+            <div class="col-12 grid-margin">
+                <div class="profile-header">
+                    <div class="cover">
+                        <div class="cover-body d-flex justify-content-between align-items-center">
+                        {% if profile.user %}
+                            <div>
+                                <img class="profile-pic" src="{{ profile.picture.url }}" alt="profile"> 
+                                <span class="profile-name">{{ profile.name }}</span>
+                            </div>
+                            <div class="d-none d-md-block">
+                                {% if request.user == user %}
+                                <a href="{% url 'social:profile-edit' profile.pk %}" class="btn btn-primary btn-icon-text btn-edit-profile">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="feather feather-edit btn-icon-prepend">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg> Edit profile
+                                    {% endif %}
+                                </a>
+                            </div>
                         {% endif %}
-                    </span>
-                </h3>
-                {% endif %}
-            </div>
-                
-            <div class="mb-3">
-                {% if profile.bio %}
-                <p>{{ profile.bio }}</p>
-                {% endif %}
-                <a href="{% url 'social:followers-list' profile.pk%}" class="post-link">Followers: {{ number_of_followers }}</a>
-            </div>
-        </div>
-    </div>
-    <div class="row justify-content-center mt-5">
-        <div class="card col-md-8 col-sm-12 shadow-sm px-5 pt-3">
-            <div>
-                {% if profile.location %}
-                    <p>Location: {{ profile.location }}</p>
-                    {% endif %}
-                    {% if profile.birth_date %}
-                    <p>Birthday: {{ profile.birth_date }}</p>
-                {% endif %}
-            </div> 
-            
-            <div class="mb-3">
-                {% if user == request.user %}
-                {% else %}
-                {% if is_following %}
-                
-                <form method="POST" action="{% url 'social:remove-follower' profile.pk %}">
-                    {% csrf_token %}
-                    <button class="btn btn-outline-danger" type="submit">UnFollow</button>
-                </form>
-                {% else %}
-                <form method="POST" action="{% url 'social:add-follower' profile.pk %}">
-                    {% csrf_token %}
-                    <button class="btn btn-outline-success" type="submit">Follow</button>
-                </form>
-                {% endif %}
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    {% for post in posts %}
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-8 col-sm-12 border-bottom position-relative">
-            <div>
-                <a href="{% url 'social:profile' post.author.profile.pk %}">
-                    <img class="rounded-circle post-img" height="30" width="30" src="{{ post.author.profile.picture.url }}" />
-                </a>
-                <p class="post-text">
-                    <a class="text-primary post-link" href="{% url 'social:profile' post.author.profile.pk %}">@{{ post.author }}</a> {{ post.created_on }}
-                </p>
-            </div>
-
-            <div class="position-relative">
-                {% if post.image.count > 0 %}
-                <div class="row">
-                    {% for img in post.image.all %}
-                    <div class="col-md-4 col-xs-12">
-                        <img src="{{ img.image.url }}" class="post-image">
+                        </div>
                     </div>
-                    {% endfor %}
+                    <div class="header-links">
+                        <ul class="links d-flex align-items-center mt-3 mt-md-0">
+                            <li class="header-link-item d-flex align-items-center active">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-columns mr-1 icon-md">
+                                    <path
+                                        d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18">
+                                    </path>
+                                </svg>
+                                <a class="pt-1px d-none d-md-block" href="#">Timeline</a>
+                            </li>
+                            <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="feather feather-user mr-1 icon-md">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <a class="pt-1px d-none d-md-block" href="#">About</a>
+                            </li>
+                            <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users mr-1 icon-md">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                <a class="pt-1px d-none d-md-block" href="{% url 'social:followers-list' profile.pk%}">Followers <span class="text-muted tx-12"> {{ number_of_followers }}</span></a>
+                            </li>
+                            <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
+                                <div>
+                                    {% if user == request.user %}
+                                    {% else %}
+                                    {% if is_following %}
+                                    
+                                    <form method="POST" action="{% url 'social:remove-follower' profile.pk %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-danger" type="submit">UnFollow</button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{% url 'social:add-follower' profile.pk %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-success" type="submit">Follow</button>
+                                    </form>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                {% endif %}
-                <p>{{ post.body }}</p>
-                <a class="stretched-link" href="{% url 'social:post-detail' post.pk %}"></a>
-            </div>
-
-            <div class="d-flex flex-row">
-                <form method="POST" action="{% url 'social:like' post.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button class="remove-default-btn" type="submit">
-                        <i class="far fa-thumbs-up"><span>{{ post.likes.all.count }}</span></i>
-                    </button>
-                </form>
-                <form method="POST" action="{% url 'social:dislike' post.pk %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button class="remove-default-btn" type="submit">
-                        <i class="far fa-thumbs-down"><span>{{ post.dislikes.all.count }}</span></i>
-                    </button>
-                </form>
             </div>
         </div>
+        <div class="row profile-body">
+            <!-- left wrapper start -->
+            <div class="d-none d-md-block col-md-4 col-xl-3 left-wrapper">
+                <div class="card rounded">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="card-title mb-0">About</h6>
+                        </div>
+                        {% if profile.bio %}
+                        <p>{{ profile.bio }}</p>
+                        {% endif %}
+                        <div class="mt-3">
+                            <label class="tx-11 font-weight-bold mb-0 text-uppercase">Birthday:</label>
+                            {% if profile.birth_date %}
+                            <p class="text-muted">{{ profile.birth_date }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="mt-3">
+                            <label class="tx-11 font-weight-bold mb-0 text-uppercase">Lives:</label>
+                            {% if profile.location %}
+                            <p class="text-muted"> {{ profile.location }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- left wrapper end -->
+            <!-- middle wrapper start -->
+            <div class="col-md-8 col-xl-6 middle-wrapper">
+                <div class="row">
+                    <div class="col-md-12 grid-margin">
+                    {% for post in posts %}
+                        <div class="card rounded">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img class="img-xs rounded-circle"
+                                            src="{{ post.author.profile.picture.url }}" alt="">
+                                            <p class="ml-3">
+                                                {{ post.author }}
+                                            </p>
+                                            <p class="tx-11 text-muted ml-3"> {{ post.created_on }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-3 tx-14">{{ post.body }}</p>
+                                {% if post.image.count > 0 %}
+                                <div class="row">
+                                    {% for img in post.image.all %}
+                                    <div class="col-md-4 col-xs-12">
+                                        <img src="{{ img.image.url }}" style="    width: 100%;
+                                        height: auto;
+                                        border-radius: 10px;
+                                        margin-bottom: 10px;">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex post-actions">
+                                    <form class="d-flex align-items-center text-muted mr-5 " method="POST" action="{% url 'social:like' post.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button class="remove-default-btn" style=" background-color: white; border: none;" type="submit">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-heart icon-md">
+                                                <path
+                                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                </path>   
+                                            </svg>
+                                            <i><span>{{ post.likes.all.count }}</span></i>
+                                        </button>
+                                    </form>
+                                    <a href="{% url 'social:post-detail' post.pk %}" class="d-flex align-items-center text-muted mr-4" style="margin-left: 180px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="feather 
+                                            feather-message-square icon-md">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
+                                            </path>       
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <!-- middle wrapper end -->
+            <!-- right wrapper start -->
+            <div class="d-none d-xl-block col-xl-3 right-wrapper">
+                <div class="row">
+                    <div class="col-md-12 grid-margin">
+                        <div class="card rounded">
+                            <div class="card-body">
+                                <h6 class="card-title">latest photos</h6>
+                                <div class="latest-photos">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <figure>
+                                                <img class="img-fluid"
+                                                    src="{{ img.image.url }}" alt="">
+                                            </figure>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 grid-margin">
+                        <div class="card rounded">
+                            <div class="card-body">
+                                
+                                <h6 class="card-title">suggestions for you</h6>
+                                {% for follower in followers %}
+                                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                    <div class="d-flex align-items-center hover-pointer">    
+                                        <a href="{% url 'social:profile' follower.profile.pk %}">
+                                            <img class="img-xs rounded-circle" src="{{ follower.profile.picture.url }}" alt="">
+                                        </a>                     
+                                        <div class="ml-2">
+                                            <p>{{ follower.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- right wrapper end -->
+        </div>
     </div>
-    {% endfor %}
 </div>
 {% endblock content %}
