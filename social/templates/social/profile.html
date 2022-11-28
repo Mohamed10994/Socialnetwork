@@ -126,15 +126,18 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <p class="mb-3 tx-14">{{ post.body }}</p>
+                                
+                                <a style="text-decoration: none; color: rgb(11, 12, 12); " href="{% url 'social:post-detail' post.pk %}">
+                                    <p class="mb-3 tx-14">{{ post.body }}</p>
+                                </a>
+                                
                                 {% if post.image.count > 0 %}
                                 <div class="row">
                                     {% for img in post.image.all %}
                                     <div class="col-md-4 col-xs-12">
-                                        <img src="{{ img.image.url }}" style="    width: 100%;
-                                        height: auto;
-                                        border-radius: 10px;
-                                        margin-bottom: 10px;">
+                                        <a href="{% url 'social:post-detail' post.pk %}">
+                                            <img src="{{ img.image.url }}" style=" width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px;">
+                                        </a>
                                     </div>
                                     {% endfor %}
                                 </div>

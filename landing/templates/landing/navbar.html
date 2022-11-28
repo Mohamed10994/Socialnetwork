@@ -30,7 +30,10 @@
           <a class="nav-link dropdown-toggle text-dark" data-bs-toggle="dropdown" href="{% url 'social:profile' user.profile.pk %}" role="buton"
             aria-expanded="false"><i class="fas fa-user"></i></a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{% url 'social:profile' request.user.profile.pk %}">Profile</a></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'social:profile' request.user.profile.pk %}">Profile</a>
+              <a class="dropdown-item" href="/logout">Logout</a>
+            </li>
           </ul>
         </div>
         <div class="nav-item inbox-icon-container">
