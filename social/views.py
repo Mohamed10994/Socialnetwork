@@ -22,11 +22,15 @@ class PostListView(LoginRequiredMixin, View):
 
         form = PostForm()
         share_form = SharedForm()
-
+        query = self.request.GET.get('query', '')
+        profile_list = UserProfile.objects.filter(
+            Q(user__username__icontains=query)
+        )
         context = {
             'post_list': posts,
             'shareform': share_form,
             'form': form,
+            'profile_list': profile_list
 
         }
         return render(request, 'social/post_list.html', context)
@@ -407,9 +411,11 @@ class CreateThread(View):
         
 class ListThreads(View):
     def get(self, request, *args, **kwargs):
+        form = ThreadForm()
         threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
         context = {
             'threads': threads,
+            'form': form,
         }
         return render(request, 'social/inbox.html', context)
     

@@ -91,7 +91,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
-    
+
 class Notification(models.Model):
     # 1 = Like, 2 = Comment, 3 = Follow, 4 = DM
     notification_type = models.IntegerField(null=True, blank=True)

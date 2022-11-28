@@ -75,3 +75,7 @@ function formatTags() {
         }
     }
 }
+
+$(function(){
+    $(".chat").niceScroll();
+}) 

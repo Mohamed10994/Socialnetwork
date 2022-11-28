@@ -42,5 +42,8 @@ def register_request(request):
     form = NewUserForm()
     return render(request, "landing/register.html", {"register_form": form})
         
-    
+def logout_request(request):
+    logout(request)
+    messages.info(request, "You have successfully logged out.")
+    return redirect("landing:index")
 

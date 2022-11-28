@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container">
-    <div class="profile-page tx-13">
+    <div class="profile-page tx-13" style="background-color: rgb(235, 238, 240);">
         <div class="row">
             <div class="row justify-content-center mt-3 mb-5">
                 <div class="col-md-5 col-sm-12 border-bottom">
@@ -12,7 +12,9 @@
                         <div class="d-grid gap-2">
                         {{ form.body }}
                         {{ form.image }}
-                        <button class="btn btn-sm btn-primary pull-right" type="submit"><i class="fa fa-pencil fa-fw"></i> Submit</button>
+                        <div class="d-flex">
+                            <button class="btn btn-success px-4 py-1" type="submit"><i class="fa fa-pencil fa-fw"></i> Submit</button>
+                        </div>
                         </div>
                     </form>
                 </div>
@@ -71,9 +73,7 @@
                                 <div class="card-rounded" >
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div class="d-flex align-items-center">
-                                            <a href="{% url 'social:profile' post.author.profile.pk %}">
-                                                <img class="img-xs rounded-circle" src="{{ post.author.profile.picture.url }}" alt="">
-                                            </a>                                
+                                             <img class="img-xs rounded-circle" src="{{ post.author.profile.picture.url }}" alt="">
                                             <p class="ml-3 tx-11 text-muted ml-3">
                                                 <a href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
                                             </p>
@@ -83,8 +83,9 @@
                                 {% endif %}
                             </div>
                             <div class="card-body" >
-                                <p class="mb-3 tx-14"> {{ post.body }} </p>
-                                
+                                <a style="text-decoration: none; color: rgb(11, 12, 12); " href="{% url 'social:post-detail' post.pk %}">
+                                    <p class="mb-3 tx-14">{{ post.body }}</p>
+                                </a>
                                 {% if post.image.count > 0 %}
                                 <div class="row">
                                     {% for img in post.image.all %}
@@ -140,14 +141,14 @@
                         <div class="card rounded">
                             <div class="card-body">
                                 <h6 class="card-title">suggestions for you</h6>
-                                {% for follower in followers %}
+                                {% for profile in profile_list %}
                                 <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center hover-pointer">    
-                                        <a href="{% url 'social:profile' follower.profile.pk %}">
-                                            <img class="img-xs rounded-circle" src="{{ follower.profile.picture.url }}" alt="">
+                                        <a href="{% url 'social:profile' profile.pk %}">
+                                            <img class="img-xs rounded-circle" src="{{ profile.picture.url }}" alt="">
                                         </a>                     
                                         <div class="ml-2">
-                                            <p>{{ follower.username }}</p>
+                                            <p>{{ profile.user }}</p>
                                         </div>
                                     </div>
                                 </div>
