@@ -28,6 +28,10 @@ class Post(models.Model):
 
     objects = PostManager()
 
+
+    def __str__(self):
+        return self.body
+
     def assign_author(self, author):
         self.author = author
         self.save()
@@ -129,7 +133,7 @@ class UserProfile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     picture = models.ImageField(upload_to='uploads/profile_pictures/', default='uploads/profile_pictures/default.png', blank=True)
-    followers = models.ManyToManyField(User, blank=True, related_name='followers')
+    followers = models.ManyToManyField(User, blank=True)
 
     objects = UserProfileManager()
 
@@ -144,9 +148,58 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
 
+class NotificationManager(models.Manager):
+    def add_like(self, form_user, to_user, **kwargs):
+        return self.create(
+            notification_type=self.model.NOTIFICATION_TYPE_LIKE,
+            form_user=form_user,
+            to_user=to_user,
+            **kwargs
+        )
+
+
+    def add_comment(self, form_user, to_user, **kwargs):
+        return self.create(
+            notification_type=self.model.NOTIFICATION_TYPE_COMMENT,
+            form_user=form_user,
+            to_user=to_user,
+            **kwargs
+        )
+
+    def add_follower(self, form_user, to_user):
+        return self.create(
+            notification_type=self.model.NOTIFICATION_TYPE_FOLLOW,
+            form_user=form_user,
+            to_user=to_user
+        )
+
+    def add_dm(self, form_user, to_user, thread):
+        return self.create(
+            notification_type=self.model.NOTIFICATION_TYPE_FOLLOW,
+            form_user=form_user,
+            to_user=to_user,
+            thread=thread
+        )
+
 class Notification(models.Model):
     # 1 = Like, 2 = Comment, 3 = Follow, 4 = DM
-    notification_type = models.IntegerField(null=True, blank=True)
+
+    NOTIFICATION_TYPE_LIKE      = 'LIKE'
+    NOTIFICATION_TYPE_COMMENT   = 'COMMENT'
+    NOTIFICATION_TYPE_FOLLOW    = 'FOLLOW'
+    NOTIFICATION_TYPE_DM        = 'DM'
+
+    NOTIFICATION_TYPE_CHOICES = [
+        (NOTIFICATION_TYPE_LIKE, 'Like'),
+        (NOTIFICATION_TYPE_COMMENT, 'Comment'),
+        (NOTIFICATION_TYPE_FOLLOW, 'Follow'),
+        (NOTIFICATION_TYPE_DM, 'DM'),
+    ]
+
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPE_CHOICES
+    )
     to_user = models.ForeignKey(User, related_name='notification_to', on_delete=models.CASCADE, null=True)
     form_user = models.ForeignKey(User, related_name='notification_form', on_delete=models.CASCADE, null=True)
     post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='+', blank=True, null=True)
@@ -154,7 +207,14 @@ class Notification(models.Model):
     thread = models.ForeignKey('ThreadModel', on_delete=models.CASCADE, related_name='+', blank=True, null=True)
     date = models.DateTimeField(default=timezone.now)
     user_has_seen = models.BooleanField(default=False)
-    
+
+    objects = NotificationManager()
+
+
+    def __str__(self):
+        return self.notification_type
+
+
 class ThreadModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')

@@ -114,8 +114,7 @@ class PostDetailView(LoginRequiredMixin, View):
 
         # notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=post.author, post=post)
 
-        Notification.objects.create(
-            notification_type=2,
+        Notification.objects.add_comment(
             form_user=request.user,
             to_user=post.author,
             post=post
@@ -150,7 +149,11 @@ class CommentReplyView(LoginRequiredMixin, View):
 
 
         # notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=parent_comment.author, comment=new_comment)
-        Notification.objects.create(notification_type=2, form_user=request.user, to_user=parent_comment.author, comment=new_comment)
+        Notification.objects.add_comment(
+            form_user=request.user,
+            to_user=parent_comment.author,
+            comment=new_comment
+        )
 
         return redirect('social:post-detail', pk=post_pk)
  
@@ -253,7 +256,12 @@ class AddCommentLikes(LoginRequiredMixin, View):
         if comment.likes.filter(pk=request.user.pk).exists():
             comment.likes.remove(request.user)
         else:
-            Notification.objects.create(notification_type=1, form_user=request.user, to_user=comment.author, comment=comment)
+            # Notification.objects.create(notification_type='LIKE', form_user=request.user, to_user=comment.author, comment=comment)
+            Notification.objects.add_like(
+                form_user=request.user,
+                to_user=comment.author,
+                comment=comment
+            )
             comment.likes.add(request.user)
 
         next = request.POST.get('next', '/  ')
@@ -287,26 +295,38 @@ class AddCommentDislike(LoginRequiredMixin, View):
 class ProfileView(View):
     def get(self, request, pk, *args, **kwargs):
         profile = UserProfile.objects.get(pk=pk)
-        user = profile.user
-        posts = Post.objects.filter(author=user).order_by('-created_on')
+        # user = profile.user
+
+        posts = Post.objects.filter(
+            author=profile.user
+        ).order_by(
+            '-created_on'
+        )
         
-        followers = profile.followers.all()
-        is_following = True if followers else False 
-        for follower in followers:
-            if follower == request.user:
-                is_following = True
-                break
-            else:
-                is_following = False
-                
-        number_of_followers = len(followers)
-        followers = profile.followers.all()
+        # followers = profile.followers.all()
+        # is_following = True if followers else False 
+        # for follower in followers:
+        #     if follower == request.user:
+        #         is_following = True
+        #         break
+        #     else:
+        #         is_following = False
+
+        # number_of_followers = len(followers)
+
+
+        followers = profile.followers.values(
+            'profile__pk',
+            'username',
+            'profile__picture'
+        )
+
         context = {
-            'user': user,
+            # 'user': user,
             'profile': profile, 
             'posts': posts,
-            'is_following': is_following,
-            'number_of_followers': number_of_followers,
+            'is_following': profile.followers.filter(pk=request.user.pk).exists(),
+            'number_of_followers': followers.count(),
             'followers': followers
         }
         return render(request, 'social/profile.html', context)
@@ -320,15 +340,19 @@ class ProfileEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         pk = self.kwargs['pk']
         return reverse_lazy('social:profile', kwargs={'pk': pk})
     def test_func(self):
-        profile = self.get_object()
-        return self.request.user == profile.user
+        return self.request.user == self.get_object().user
 
 class AddFollower(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         profile = UserProfile.objects.get(pk=pk)
         
         profile.followers.add(request.user)
-        notification = Notification.objects.create(notification_type=3, form_user=request.user, to_user=profile.user)
+        # Notification.objects.create(notification_type=3, form_user=request.user, to_user=profile.user)
+        Notification.objects.add_follower(
+            form_user=request.user,
+            to_user=profile.user
+        )
+
         return redirect('social:profile', pk=pk)
 
 class RemoveFollower(LoginRequiredMixin, View):
@@ -366,7 +390,13 @@ class AddLike(LoginRequiredMixin, View):
                 break
         if not is_like:
             post.likes.add(request.user)
-            notification = Notification.objects.create(notification_type=1, form_user=request.user, to_user=post.author, post=post)
+            # notification = Notification.objects.create(notification_type=1, form_user=request.user, to_user=post.author, post=post)
+            Notification.objects.add_like(
+                form_user=request.user,
+                to_user=post.author,
+                post=post
+            )
+
         if is_like:
             post.likes.remove(request.user)
             
@@ -409,35 +439,45 @@ class UserSearch(View):
     
 class PostNotification(View):
     def get(self, request, notification_pk, post_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        post = Post.objects.get(pk=post_pk)
-        
-        notification.user_has_seen = True
-        notification.save()
+        # post = Post.objects.get(pk=post_pk)
+
+        # notification = Notification.objects.get(pk=notification_pk)
+        # notification.user_has_seen = True
+        # notification.save()
+
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         return redirect('social:post-detail', pk=post_pk)
     
 class FollowNotification(View):
     def get(self, request, notification_pk, profile_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        profile =UserProfile.objects.get(pk=profile_pk)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         
         return redirect('social:profile', pk=profile_pk)
     
 class ThreadNotification(View):
     def get(self, request,notification_pk, object_k, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        thread = ThreadModel.objects.get(pk=object_k)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         return redirect('social:thread', pk=object_k) 
     
 class RemoveNotification(View):
     def delete(self, request, notification_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         return HttpResponse('Success', content_type='text/plain')
     
 class CreateThread(View):
@@ -453,22 +493,30 @@ class CreateThread(View):
         
         try:
             receiver = User.objects.get(username=username)
-            if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():
-                
-                thread = ThreadModel.objects.filter(user=request.user, receiver=receiver)[0]
-                return redirect('social:thread', pk=thread.pk)
-            if form.is_valid():
-                sender_thread = ThreadModel(
-                    user=request.user,
-                    receiver=receiver,
-                )
-                sender_thread.save()
-                thread_pk = sender_thread.pk
-                return redirect('social:thread', pk=thread_pk)
-        except:
+        except User.DoesNotExist:
             messages.error(request, 'User not found.')
             return redirect('social:create-thread')
-        
+
+        thread_pk = ThreadModel.objects.filter(user=request.user, receiver=receiver).values_list('pk', flat=True).first()
+
+        if thread_pk:
+            return redirect('social:thread', pk=thread_pk)
+
+        if form.is_valid():
+            # sender_thread = ThreadModel(
+            #     user=request.user,
+            #     receiver=receiver,
+            # )
+            # sender_thread.save()
+            sender_thread = ThreadModel.objects.create(
+                user=request.user,
+                receiver=receiver,
+            )
+
+            thread_pk = sender_thread.pk
+            return redirect('social:thread', pk=thread_pk)
+
+
 class ListThreads(View):
     def get(self, request, *args, **kwargs):
         form = ThreadForm()
@@ -494,13 +542,19 @@ class CreateMessage(View):
             message.sender_user = request.user
             message.receiver_user = receiver
             message.save()
-        notification = Notification.objects.create(
-            notification_type=4,
+        # notification = Notification.objects.create(
+        #     notification_type=4,
+        #     form_user=request.user,
+        #     to_user = receiver, 
+        #     thread=thread,
+        # )
+        
+        Notification.objects.add_dm(
             form_user=request.user,
             to_user = receiver, 
-            thread=thread,
+            thread=thread
         )
-        
+
         return redirect('social:thread', pk=pk)
 
 class ThreadView(View):
