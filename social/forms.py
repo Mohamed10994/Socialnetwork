@@ -7,13 +7,15 @@ class PostForm(forms.ModelForm):
         widget=forms.Textarea(
             attrs={
                 'rows': '3',
-                'placeholder': 'Say Something...'
+                'cols': '50',
+                'style': 'height: 5em;'
+                
             }))
     
     image = forms.ImageField(
         required=False,
         widget=forms.ClearableFileInput(attrs={
-            'multiple': True
+            'multiple': True    
         }))
     
     class Meta:
@@ -33,12 +35,15 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['comment']
-        
+   
+# Input for the person we want to talk to     
 class ThreadForm(forms.Form):
     username = forms.CharField(label='', max_length=100)
 
+
 class MessageForm(forms.ModelForm):
     #message = forms.CharField(label='', max_length=1000)
+    body = forms.CharField(label='', max_length=1000)
     image = forms.ImageField(label='Send an Image', required=False)
     
     class Meta:

@@ -1,38 +1,88 @@
 {% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-
-<div class="container">
-    <div class="profile-page tx-13" style="background-color: rgb(235, 238, 240);">
-        <div class="row">
-            <div class="row justify-content-center mt-3 mb-5">
-                <div class="col-md-5 col-sm-12 border-bottom">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="d-grid gap-2">
-                        {{ form.body }}
-                        {{ form.image }}
-                        <div class="d-flex">
-                            <button class="btn btn-success px-4 py-1" type="submit"><i class="fa fa-pencil fa-fw"></i> Submit</button>
-                        </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+<div class="">
+    <div class="profile-page tx-13" style="background-color: #3a4550;">
         <div class="row profile-body">
             <!-- left wrapper start -->
-            <div class="d-none d-md-block col-md-4 col-xl-3 left-wrapper">
+            <div class="d-none d-md-block col-md-14 col-xl-3 left-wrapper" style="margin-left: 60px; margin-top: 224px;">
+                <a id="popularPosts"></a>
+                <ul class="list-group">
+                    <li class="list-group-item text-center header sidebar-header" style="background-color: #EBEEF0;">Most Commented Posts</li>
+                    {% if most_popular_posts %}
+                    {% for post in most_popular_posts %}
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center" >
+                                            <a  href="{% url 'social:profile' post.author.profile.pk %}">
+                                                <img class="img-xs rounded-circle" src="{{ post.author.profile.picture.url }}">
+                                            </a>                                
+                                            <p class="ml-3 tx-11 text-muted ml-2" style="font-size: 13.5px;">
+                                                <a style="text-decoration: none;" href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <a style="text-decoration: none; color: rgb(11, 12, 12); " href="{% url 'social:post-detail' post.pk %}">
+                                        <p class="mb-3 tx-14">{{ post.body }}</p>
+                                    </a>
+                                    {% if post.image.count == 1 %}
+                                    <div class="row">
+                                        {% for img in post.image.all %}
+                                        <div class="col-md-8 col-xs-12">
+                                            <a href="{% url 'social:post-detail' post.pk %}">
+                                                <img src="{{ img.image.url }}" style="width: auto; height: 100px;" class="img-fluid">
+                                            </a>                                 
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="col-12 text-right">
+                                        <small>
+                                            <a class="home-comments-count" href="{% url 'social:post-detail' post.pk %}">
+                                                {{ post.comments.count }} comments
+                                            </a>
+                                        </small>
+                                    </div>
 
+                                </div>
+                            </li>
+                            {% endfor %}
+                            {% else %}
+                        <li class="list-group-item">
+                            <div class="text-center long-page">
+                                There are no posts in the site yet.
+                            </div>
+                        </li>
+                        {% endif %}
+                </ul>
             </div>
             <!-- left wrapper end -->
             <!-- middle wrapper start -->
-            <div class="col-md-8 col-xl-6 middle-wrapper">
+            <div class="col-md-8 col-xl-5 middle-wrapper">
                 <div class="row">
                     <div class="col-md-12 grid-margin">
+                            <div class="row justify-content-center mt-3 mb-5">
+                                <div class="col-md-10 col-sm-12 border-bottom">
+                                    <form method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <div class="form-group new-post">
+                                            <div class="justify-content-center" style="margin-left: 40px;">
+                                                {{ form.body }}
+                                            </div>
+                                        <div class="filestyle" style="margin-left: 160px; position: absolute; margin-top: 22px; color: #17a2b8;">
+                                            {{form.image}}
+                                        </div>
+                                        <div style="margin-top: 20px; margin-left: 50px;" class="input-group-append">
+                                            <button class="btn btn-outline-info newPost" type="submit"><i class="fa fa-pencil fa-fw"></i> Submit</button>
+                                        </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                     {% for post in post_list %}
-                        <div  class="card rounded">
-                            <div  class="card-header" style="background-color: #ffff;">
+                        <div  class="card rounded" style="background-color: #fff;">
+                            <div class="card-header" >
                                 {% if post.shared_user %}
                                 <div class="card-rounded body"  >
                                     <div class="d-flex align-items-center justify-content-between">
@@ -41,7 +91,7 @@
                                                 <img class="img-xs rounded-circle" src="{{ post.shared_user.profile.picture.url }}" alt="">
                                             </a>
                                             <p class="ml-3 tx-11 text-muted ml-3">
-                                                <a style="text-decoration: none;" href="{% url 'social:profile' post.shared_user.profile.pk %}">{{ post.shared_user }}</a>
+                                                <a style="text-decoration: none; color: black;" href="{% url 'social:profile' post.shared_user.profile.pk %}">{{ post.shared_user }}</a>
                                             </p>
                                         </div>
                                     </div>
@@ -53,7 +103,7 @@
                                             <img class="img-xs rounded-circle" src="{{ post.author.profile.picture.url }}">
                                         </a>                                
                                         <p class="ml-3 tx-11 text-muted ml-3">
-                                            <a style="text-decoration: none;" href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
+                                            <a style="text-decoration: none; color: black;" href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
                                             <span onclick="shareToggle('{{ post.pk }}')"><i class="far fa-share-square share-btn"></i></span>
                                         </p>
                                     </div>
@@ -75,7 +125,7 @@
                                         <div class="d-flex align-items-center">
                                              <img class="img-xs rounded-circle" src="{{ post.author.profile.picture.url }}" alt="">
                                             <p class="ml-3 tx-11 text-muted ml-3">
-                                                <a href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
+                                                <a style="text-decoration: none; color: black;" href="{% url 'social:profile' post.author.profile.pk %}">{{ post.author }}</a> {{ post.created_on }}
                                             </p>
                                         </div>
                                     </div>
@@ -92,8 +142,7 @@
                                     <div class="col-md-4 col-xs-12">
                                         <a href="{% url 'social:post-detail' post.pk %}">
                                             <img src="{{ img.image.url }}" style=" width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px;">
-                                        </a>
-                                        
+                                        </a>                                 
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -104,7 +153,7 @@
                                     <form class="d-flex align-items-center text-muted mr-5 " method="POST" action="{% url 'social:like' post.pk %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="next" value="{{ request.path }}">
-                                        <button class="remove-default-btn" style=" background-color: white; border: none;" type="submit">
+                                        <button class="remove-default-btn like-btn" style=" background-color: white; border: none;" type="submit" next-like-btn-id="{{ post.pk}}">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                 stroke-linecap="round" stroke-linejoin="round"
@@ -135,12 +184,12 @@
             </div>
             <!-- middle wrapper end -->
             <!-- right wrapper start -->
-            <div class="d-none d-xl-block col-xl-3 right-wrapper">
+            <div class="d-none d-xl-block col-xl-3 right-wrapper" style="margin-top: 224px;">                
                 <div class="row">
-                    <div class="col-md-12 grid-margin">
+                    <div class="col-md-14 grid-margin">
+                        <li class="list-group-item text-center header sidebar-header" style="background-color: #EBEEF0;">Suggestions for you</li>
                         <div class="card rounded">
                             <div class="card-body">
-                                <h6 class="card-title">suggestions for you</h6>
                                 {% for profile in profile_list %}
                                 <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center hover-pointer">    
@@ -154,6 +203,25 @@
                                 </div>
                                 {% endfor %}
                             </div>
+                            <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
+                                <div>
+                                    {% if user == request.user %}
+                                    {% else %}
+                                    {% if is_following %}
+                                    
+                                    <form method="POST" action="{% url 'social:remove-follower' profile.pk %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-danger" type="submit">UnFollow</button>
+                                    </form>
+                                    {% else %}
+                                    <form method="POST" action="{% url 'social:add-follower' profile.pk %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-success" type="submit">Follow</button>
+                                    </form>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+                            </li>
                         </div>
                     </div>
                 </div>
@@ -163,3 +231,4 @@
     </div>
 </div>
 {% endblock content %}
+

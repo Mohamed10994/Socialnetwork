@@ -7,7 +7,7 @@ from django.dispatch import receiver
 class Post(models.Model):
     shared_body = models.TextField(blank=True, null=True)
     body = models.TextField()
-    image = models.ManyToManyField('Image', blank=True)
+    image = models.ManyToManyField('Image', blank=True,)
     created_on = models.DateTimeField(default=timezone.now)
     shared_on = models.DateTimeField(blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -46,8 +46,8 @@ class Post(models.Model):
 class Comment(models.Model):
     comment = models.TextField()
     created_on = models.DateTimeField(default=timezone.now)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey('Post', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='total_comments')
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')
     likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
     dislikes = models.ManyToManyField(User, blank=True, related_name='comment_dislikes')
     parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='+')
@@ -103,12 +103,13 @@ class Notification(models.Model):
     date = models.DateTimeField(default=timezone.now)
     user_has_seen = models.BooleanField(default=False)
     
+# Will hold all messages between two users
 class ThreadModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
     has_unread = models.BooleanField(default=False)
     
-
+# Will hold the data for the individual message
 class MessageModel(models.Model):
     thread = models.ForeignKey('ThreadModel', related_name='+', on_delete=models.CASCADE, blank=True, null=True)
     
@@ -123,6 +124,7 @@ class MessageModel(models.Model):
     date = models.DateTimeField(default=timezone.now)
     
     is_read = models.BooleanField(default=False)
+    
     
 class Image(models.Model):
     image = models.ImageField(upload_to='uploads/post_photos', blank=True, null=True)

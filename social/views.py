@@ -8,17 +8,22 @@ from django.views.generic.edit import UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.http import HttpResponseRedirect, HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib import messages
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+
 
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         logged_in_user = request.user
-        posts = Post.objects.filter(
+        posts = Post.objects.all().order_by('-created_on')
+        post_list = Post.objects.filter(
             author__profile__followers__in=[logged_in_user.id]    
         )
+        most_popular_posts = Post.objects.annotate(
+            num_comments=Count('comments')).order_by('-num_comments')[:10]
 
         form = PostForm()
         share_form = SharedForm()
@@ -27,11 +32,12 @@ class PostListView(LoginRequiredMixin, View):
             Q(user__username__icontains=query)
         )
         context = {
-            'post_list': posts,
+            'post_list': post_list,
             'shareform': share_form,
             'form': form,
-            'profile_list': profile_list
-
+            'profile_list': profile_list,
+            'posts': posts,
+            'most_popular_posts': most_popular_posts
         }
         return render(request, 'social/post_list.html', context)
     
@@ -227,16 +233,16 @@ class ProfileView(View):
         profile = UserProfile.objects.get(pk=pk)
         user = profile.user
         posts = Post.objects.filter(author=user).order_by('-created_on')
-        
+        images = Post.objects.filter(author=user).order_by('-created_on')[:3]
         followers = profile.followers.all()
         is_following = True if followers else False 
+
         for follower in followers:
             if follower == request.user:
                 is_following = True
                 break
             else:
-                is_following = False
-                
+                is_following = False     
         number_of_followers = len(followers)
         followers = profile.followers.all()
         context = {
@@ -245,7 +251,8 @@ class ProfileView(View):
             'posts': posts,
             'is_following': is_following,
             'number_of_followers': number_of_followers,
-            'followers': followers
+            'followers': followers,
+            'images': images
         }
         return render(request, 'social/profile.html', context)
         
@@ -379,22 +386,24 @@ class RemoveNotification(View):
         notification.user_has_seen = True
         notification.save()
         return HttpResponse('Success', content_type='text/plain')
-    
+ 
+# Searching for user 
 class CreateThread(View):
+    # Will display the form to enter a username
     def get(self, request, *args, **kwargs):
         form = ThreadForm()
         context = {
             'form': form,
         }
         return render(request, 'social/create_thread.html', context)
+    # Handle creating the thread 
     def post(self, request, *args, **kwargs):
         form = ThreadForm(request.POST)
         username = request.POST.get('username')
         
         try:
             receiver = User.objects.get(username=username)
-            if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():
-                
+            if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():   
                 thread = ThreadModel.objects.filter(user=request.user, receiver=receiver)[0]
                 return redirect('social:thread', pk=thread.pk)
             if form.is_valid():
@@ -408,17 +417,17 @@ class CreateThread(View):
         except:
             messages.error(request, 'User not found.')
             return redirect('social:create-thread')
-        
+    
+# Our inbox to see all of our conversations
 class ListThreads(View):
     def get(self, request, *args, **kwargs):
-        form = ThreadForm()
         threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
         context = {
             'threads': threads,
-            'form': form,
         }
         return render(request, 'social/inbox.html', context)
-    
+
+# For create the message   
 class CreateMessage(View):
     def post(self, request, pk, *args, **kwargs):
         form = MessageForm(request.POST, request.FILES)
@@ -442,19 +451,44 @@ class CreateMessage(View):
         )
         
         return redirect('social:thread', pk=pk)
-
+    
+# For display all the messages
 class ThreadView(View):
     def get(self, request, pk, *args, **kwargs):
+        form_thread = ThreadForm()
         form = MessageForm()
         thread =  ThreadModel.objects.get(pk=pk)
         message_list = MessageModel.objects.filter(thread__pk__contains=pk)
-        
+        threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
         context = {
             'thread': thread,
             'form': form,
-            'message_list': message_list
+            'form_thread': form_thread,
+            'message_list': message_list,
+            'threads': threads
         }
         return render(request, 'social/thread.html', context)
+    def post(self, request, *args, **kwargs):
+        form = ThreadForm(request.POST)
+        username = request.POST.get('username')
+        
+        try:
+            receiver = User.objects.get(username=username)
+            if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():   
+                thread = ThreadModel.objects.filter(user=request.user, receiver=receiver)[0]
+                return redirect('social:thread', pk=thread.pk)
+            if form.is_valid():
+                sender_thread = ThreadModel(
+                    user=request.user,
+                    receiver=receiver,
+                )
+                sender_thread.save()
+                thread_pk = sender_thread.pk
+                return redirect('social:thread', pk=thread_pk)
+        except:
+            messages.error(request, 'User not found.')
+            return redirect('social:create-thread')
+    
     
 class Explore(View):
     def get(self, request, *args, **kwargs):

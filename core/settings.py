@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'landing.apps.LandingConfig',
-    'social',
+    'social.apps.SocialConfig',
     
     
     'allauth',

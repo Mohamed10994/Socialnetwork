@@ -1,64 +1,89 @@
-{% extends 'landing/base.html' %}
+{% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="card col-md-12 mt-5 p-3 shadow-sm">
-          {% if thread.receiver == request.user %}
-            <h5>@{{ thread.user }}</h5>
-          {% else %}
-            <h5>@{{ thread.receiver }}</h5>
+
+<main class="content">
+    <div class="container p-0">
+		<h1 class="h3 mb-3">Messages</h1>
+		<div class="card">
+			<div class="row g-0">
+				<div class="col-12 col-lg-5 col-xl-3 border-right">
+					<div class="px-4 d-none d-md-block">
+						<div class="d-flex align-items-center">
+							<div class="flex-grow-1" style="margin-top: 10px;">
+                  <form method="POST" >
+									{% csrf_token%}
+									{{ form_thread | crispy}}
+                  </form>
+							</div>
+						</div>
+					</div>
+          {% for thread in threads.all %}
+					<a href="{% url 'social:thread' thread.pk %}" class="list-group-item list-group-item-action border-0">
+						<div class="d-flex align-items-start">   
+							<img src="{{ thread.receiver.profile.picture.url }}" class="rounded-circle mr-1" alt="Jennifer Chang" width="40" height="40">
+							<div class="flex-grow-1 ml-3">
+                {{ thread.receiver }}
+								<div class="small"><span class="fas fa-circle chat-offline"></span> Offline</div>
+							</div>
+						</div>
+					</a>
+          {% endfor %}
+					<hr class="d-block d-lg-none mt-1 mb-0">
+				</div>
+				<div class="col-12 col-lg-7 col-xl-9">
+					<div class="py-2 px-4 border-bottom d-none d-lg-block">
+						<div class="d-flex align-items-center py-1">
+							<div class="position-relative">
+                <img src="{{ thread.receiver.profile.picture.url }}" class="rounded-circle mr-1" width="40" height="40">
+								<strong>{{ thread.receiver }}</strong>
+							</div>
+						</div>
+					</div>
+          {% if message_list.all.count == 0 %}
+          <div class="row my-5">
+            <div class="col-md-12">
+              <p class="emty-text">No Messages</p>
+            </div>
+          </div>
           {% endif %}
-      </div>
-    </div>
-    {% if message_list.all.count == 0 %}
-    <div class="row my-5">
-      <div class="col-md-12">
-        <p class="empty-text">No Messages</p>
-      </div>
-    </div>
-    {% endif %}
-
-    {% for message in message_list %}
-    <div class="row">
-      {% if message.sender_user == request.user %}
-      <div class="col-md-12 my-1">
-        {% if message.image %}
-        <div>
-          <img src="{{ message.image.url }}" class="message-image">
+          {% for message in message_list %}
+          <div class="row">
+            <div class="col-md-12 my-1">
+              {% if message.sender_user == request.user %}
+            <div class="sent-message my-3" style="background-color: #f3f3f3; border-radius: 30px; padding: 10px 25px; width: 25%">
+              {% if message.image %}
+              <div class="message-receiver-container ms-auto">
+                <img style="width: auto; height: 100px;" src="{{ message.image.url}}" class="img-fluid">
+              </div>
+              {% endif %}
+              <p>{{ message.body }}</p>
+            </div>
+          {% elif message.receiver_user == request.user%}
+          <div class="received-message my-3" style="background-color: rgb(1, 196, 255); color: #fff; border-radius: 30px;padding: 10px 25px; width: 25%; float: right;">
+            {% if message.image %}
+            <div class="message-receiver-container ms-auto">
+              <img style="width: auto; height: 100px;" src="{{ message.image.url}}" class="img-fluid">
+            </div>
+            {% endif %}
+            <p>{{ message.body }}</p>
+          </div>
+          {% endif %}
+          </div>
         </div>
-        {% endif %}
-      <div class="sent-message my-3">
-        <p>{{ message.body }}</p>
-      </div>
-    </div>
-    
-    {% elif message.receiver_user == request.user%}
-    <div class="col-md-12 offset-6">
-      {% if message.image %}
-      <div class="message-receiver-container ms-auto">
-        <img src="{{ message.image.url}}" class="message-image">
-      </div>
-      {% endif %}
-      <div class="received-message my-3">
-        <p>{{ message.body }}</p>
-      </div> 
-    </div>
-    {% endif %}
-  </div>
-  {% endfor %}
-
-  <div class="row">
-    <div class="card col-md-12 p-3 shadow-sm">
-      <form method="POST" action="{% url 'social:create-message' thread.pk %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form | crispy }}
-
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-light" type="submit">Send Message</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+        {% endfor %}
+					<div class="flex-grow-0 py-3 px-4 border-top">
+						<div class="input-group">
+              <form method="POST" action="{% url 'social:thread' thread.pk%}">
+                {% csrf_token %}
+                {{ form | crispy }}
+                  <button class="btn btn-primary" type="submit">Send</button>
+              </form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</main>
 {% endblock content %}
