@@ -215,8 +215,8 @@
                                 {% for follower in followers %}
                                 <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center hover-pointer">    
-                                        <a href="{% url 'social:profile' follower.profile.pk %}">
-                                            <img class="img-xs rounded-circle" src="{{ follower.profile.picture.url }}" alt="">
+                                        <a href="{% url 'social:profile' follower.profile__pk %}">
+                                            <img class="img-xs rounded-circle" src="{{ follower.profile__picture.url }}" alt="">
                                         </a>                     
                                         <div class="ml-2">
                                             <p>{{ follower.username }}</p>

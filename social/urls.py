@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, AddDislike, UserSearch, ListFollowers, AddCommentLikes, AddCommentDislike, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, SharedPostView, Explore, ThreadNotification, ThreadView, CreateThread, CreateMessage
+from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, UserSearch, ListFollowers, AddCommentLikes, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, SharedPostView, Explore, ThreadNotification, ThreadView, CreateThread, CreateMessage
 
 app_name = 'social'
  
@@ -12,9 +12,7 @@ urlpatterns = [
     path('post/<int:post_pk>/comment/<int:pk>/like', AddCommentLikes.as_view(), name='comment-like'),
     
     path('post/<int:pk>/like', AddLike.as_view(), name='like'),
-    path('post/<int:post_pk>/comment/<int:pk>/like', AddCommentDislike.as_view(), name='comment-dislike'),
-    
-    path('post/<int:pk>/dislike', AddDislike.as_view(), name='dislike'),
+
     path('post/<int:post_pk>/comment/reply/<int:pk>', CommentReplyView.as_view(), name='comment-reply'),
     path('post/<int:pk>/share', SharedPostView.as_view(), name='share-post'),
     path('profile/<int:pk>/', ProfileView.as_view(), name='profile'),

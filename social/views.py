@@ -17,65 +17,71 @@ from django.shortcuts import get_object_or_404
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
-        logged_in_user = request.user
-        posts = Post.objects.all().order_by('-created_on')
-        post_list = Post.objects.filter(
-            author__profile__followers__in=[logged_in_user.id]    
+        form = PostForm()
+        share_form = SharedForm()
+        profile_list = UserProfile.objects.all()[:5]
+        post_list = Post.objects.get_following_posts(
+            user = request.user
         )
         most_popular_posts = Post.objects.annotate(
             num_comments=Count('comments')).order_by('-num_comments')[:10]
-
-        form = PostForm()
-        share_form = SharedForm()
-        query = self.request.GET.get('query', '')
-        profile_list = UserProfile.objects.filter(
-            Q(user__username__icontains=query)
-        )
+        
         context = {
             'post_list': post_list,
             'shareform': share_form,
             'form': form,
             'profile_list': profile_list,
-            'posts': posts,
             'most_popular_posts': most_popular_posts
         }
         return render(request, 'social/post_list.html', context)
     
     def post(self, request, *args, **kwargs):
-        logged_in_user = request.user
-        posts = Post.objects.filter(
-            author__profile__followers__in=[logged_in_user.id]    
+        share_form = SharedForm()
+        
+        posts = Post.objects.get_following_posts(
+            user = request.user
         )
         
+        profile_list = UserProfile.objects.all()[:10]
+        
         form = PostForm(request.POST, request.FILES)
+        
         files = request.FILES.getlist('image')
-        share_form = SharedForm()
+        
+
+        most_popular_posts = Post.objects.annotate(num_comments=Count('comments')).order_by('-num_comments')[:10]
+        
         if form.is_valid():
             new_post = form.save(commit=False)
-            new_post.author = request.user  
-            new_post.save()
+            new_post.assign_author(author=request.user)
             new_post.create_tags()
             
-            for f in files:
-                img = Image(image=f)
-                img.save()
+            for file in files:
+                img = Image.objects.create(
+                    image = file,
+                )
                 new_post.image.add(img)
-            new_post.save()
+                
+
+        form = PostForm()
         
         context = {
             'post_list': posts,
             'shareform': share_form,
             'form': form,
+            'profile_list': profile_list,
+            'most_popular_posts':most_popular_posts,
         }
         
         return render(request, 'social/post_list.html', context)
     
 class PostDetailView(LoginRequiredMixin, View):
     def get(self, request, pk, *args, **kwargs):
-        post = Post.objects.get(pk=pk)
         form = CommentForm()
         
-        comments = Comment.objects.filter(post=post)
+        post = get_object_or_404(Post, pk=pk)
+        
+        comments = Comment.objects.related_post(post=post)
         
         context = {
             'post': post,
@@ -85,18 +91,25 @@ class PostDetailView(LoginRequiredMixin, View):
         return render(request, 'social/post_detail.html', context)
     
     def post(self, request, pk, *args, **kwargs):
-        post = Post.objects.get(pk=pk)
         form = CommentForm(request.POST)
         
+        post = get_object_or_404(Post, pk=pk)
+ 
         if form.is_valid():
             new_comment = form.save(commit=False)
-            new_comment.author = request.user
-            new_comment.post = post
-            new_comment.save()
+            new_comment.save_data(
+                author=request.user,
+                post=post
+            )
             new_comment.create_tags()
             
-        comments = Comment.objects.filter(post=post)
-        notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=post.author, post=post)
+        comments = Comment.objects.related_post(post=post)
+        
+        Notification.objects.add_comment(
+            form_user=request.user,
+            to_user=post.author,
+            post=post
+        )
         
         context = {
             'post': post,
@@ -107,18 +120,25 @@ class PostDetailView(LoginRequiredMixin, View):
     
 class CommentReplyView(LoginRequiredMixin, View):
     def post(self, request, post_pk, pk, *args, **kwargs):
-        post = Post.objects.get(pk=post_pk)
-        parent_comment = Comment.objects.get(pk=pk)
         form = CommentForm(request.POST)
         
+        post = get_object_or_404(Post, pk=post_pk)
+        
+        parent_comment = get_object_or_404(Comment, pk=pk)
+
         if form.is_valid():
             new_comment = form.save(commit=False)
-            new_comment.author = request.user
-            new_comment.post = post
-            new_comment.parent = parent_comment
-            new_comment.save()
+            new_comment.save_data(
+                author=request.author,
+                post=post,
+                parent=parent_comment
+            )
 
-        notification = Notification.objects.create(notification_type=2, form_user=request.user, to_user=parent_comment.author, comment=new_comment)
+        Notification.objects.add_comment(
+            form_user=request.user,
+            to_user=parent_comment.author,
+            comment=new_comment
+        )
         return redirect('social:post-detail', pk=post_pk)
  
 class PostEditView(LoginRequiredMixin, UserPassesTestMixin ,UpdateView):
@@ -144,11 +164,12 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
 class SharedPostView(View):
     def post(self, request, pk, *args, **kwargs):
-        original_post = Post.objects.get(pk=pk)
         form = SharedForm(request.POST)
         
+        original_post = Post.objects.get(pk=pk)
+        
         if form.is_valid():
-            new_post = Post(
+            new_post = Post.objects.create(
                 shared_body = self.request.POST.get('body'),
                 body = original_post.body,
                 author = original_post.author,
@@ -156,13 +177,8 @@ class SharedPostView(View):
                 shared_user = request.user,
                 shared_on = timezone.now(),
             )
-            new_post.save()
             
-            for img in original_post.image.all():
-                new_post.image.add(img)
-                
-            new_post.save()
-            
+            new_post.image.add(*original_post.image.all())
         return redirect('social:post-list')
     
 
@@ -179,74 +195,41 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
 class AddCommentLikes(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        comment = Comment.objects.get(pk=pk)
+        comment = get_object_or_404(Comment, pk=pk)
         
-        is_dislike = False
-        
-        for dislike in comment.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-        if is_dislike:
-            comment.dislikes.remove(request.user)
-        is_like = False
-        
-        for like in comment.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-        if not is_like:
-            comment.likes.add(request.user)
-            notification = Notification.objects.create(notification_type=1, form_user=request.user, to_user=comment.author, comment=comment)
-        if is_like:
+        if comment.likes.filter(pk=request.user.pk).exists():
             comment.likes.remove(request.user)
+        else:
+            Notification.objects.add_like(
+                form_user=request.user,
+                to_user=comment.author,
+                comment=comment
+            )
+            comment.likes.add(request.user)
+
         next = request.POST.get('next', '/  ')
         return HttpResponseRedirect(next)
-
-class AddCommentDislike(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
-        comment = Comment.objects.get(pk=pk)
-        is_like = False
-        for like in comment.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-        if is_like:
-            comment.likes.remove(request.user)
-        is_dislike = False
-        for dislike in comment.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-        if not is_dislike: 
-            comment.dislikes.add(request.user)
-        
-        if is_dislike:
-            comment.dislikes.remove(request.user)
-        next = request.POST.get('next', '/')
-        return HttpResponseRedirect(next)
-            
 
     
 class ProfileView(View):
     def get(self, request, pk, *args, **kwargs):
-        profile = UserProfile.objects.get(pk=pk)
-        user = profile.user
-        posts = Post.objects.filter(author=user).order_by('-created_on')
-        images = Post.objects.filter(author=user).order_by('-created_on')[:3]
-        followers = profile.followers.all()
-        is_following = True if followers else False 
+        profile = get_object_or_404(UserProfile, pk=pk)
 
-        for follower in followers:
-            if follower == request.user:
-                is_following = True
-                break
-            else:
-                is_following = False     
-        number_of_followers = len(followers)
-        followers = profile.followers.all()
+        posts = Post.objects.filter(author=profile.user).order_by('-created_on')
+        
+        images = Post.objects.filter(author=profile.user).order_by('-created_on')[:3]
+        
+        followers = profile.followers.values(
+            'profile__pk',
+            'username',
+            'profile__picture',
+        )
+        
+        is_following = profile.followers.filter(pk=request.user.pk).exists()
+
+        number_of_followers = followers.count()
+        
         context = {
-            'user': user,
             'profile': profile, 
             'posts': posts,
             'is_following': is_following,
@@ -265,21 +248,27 @@ class ProfileEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         pk = self.kwargs['pk']
         return reverse_lazy('social:profile', kwargs={'pk': pk})
     def test_func(self):
-        profile = self.get_object()
-        return self.request.user == profile.user
+        return self.request.user == self.get_object().user
 
 class AddFollower(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
-        profile = UserProfile.objects.get(pk=pk)
+        profile = get_object_or_404(UserProfile, pk=pk)
         
         profile.followers.add(request.user)
-        notification = Notification.objects.create(notification_type=3, form_user=request.user, to_user=profile.user)
+        
+        Notification.objects.add_follow(
+            form_user=request.user,
+            to_user=profile.user
+        )
+        
         return redirect('social:profile', pk=pk)
 
 class RemoveFollower(LoginRequiredMixin, View):
     def post(self,request, pk, *args, **kwargs):
-        profile = UserProfile.objects.get(pk=pk)
+        profile = get_object_or_404(UserProfile, pk=pk)
+        
         profile.followers.remove(request.user)
+        
         return redirect('social:profile', pk=profile.pk)
     
 class ListFollowers(View):
@@ -297,57 +286,25 @@ class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
         
-        is_dislike = False
-        for dislike in post.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-        if is_dislike:
-            post.dislikes.remove(request.user)
-        is_like = False
-        for like in post.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-        if not is_like:
+        if post.likes.filter(pk=request.user.pk).exists():
+            post.likes.remove(request.user)
+        else:
+            Notification.objects.add_like(
+                form_user=request.user,
+                to_user=post.author,
+                post=post
+            )
             post.likes.add(request.user)
-            notification = Notification.objects.create(notification_type=1, form_user=request.user, to_user=post.author, post=post)
-        if is_like:
-            post.likes.remove(request.user)
-            
+
         next = request.POST.get('next', '/social')
-        return HttpResponseRedirect(next)
-            
-class AddDislike(LoginRequiredMixin, View):
-    def post(self, request, pk, *args, **kwargs):
-        post = Post.objects.get(pk=pk)
-        is_like = False
-        for like in post.likes.all():
-            if like == request.user:
-                is_like = True
-                break
-        if is_like:
-            post.likes.remove(request.user)
-        is_dislike = False
-        for dislike in post.dislikes.all():
-            if dislike == request.user:
-                is_dislike = True
-                break
-            
-        if not is_dislike:
-            post.dislikes.add(request.user)
-        if is_dislike:
-            post.dislikes.remove(request.user)
         
-        next = request.POST.get('next', '/social')
         return HttpResponseRedirect(next)
+            
     
 class UserSearch(View):
     def get(self,request, *args, **kwargs):
         query = self.request.GET.get('query', '')
-        profile_list = UserProfile.objects.filter(
-            Q(user__username__icontains=query)
-        )
+        profile_list = UserProfile.objects.search(query=query)
         
         context = {
             'profile_list': profile_list,
@@ -356,35 +313,41 @@ class UserSearch(View):
     
 class PostNotification(View):
     def get(self, request, notification_pk, post_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        post = Post.objects.get(pk=post_pk)
+
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         
-        notification.user_has_seen = True
-        notification.save()
         return redirect('social:post-detail', pk=post_pk)
     
 class FollowNotification(View):
     def get(self, request, notification_pk, profile_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        profile =UserProfile.objects.get(pk=profile_pk)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         
         return redirect('social:profile', pk=profile_pk)
     
 class ThreadNotification(View):
     def get(self, request,notification_pk, object_k, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        thread = ThreadModel.objects.get(pk=object_k)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         return redirect('social:thread', pk=object_k) 
     
 class RemoveNotification(View):
     def delete(self, request, notification_pk, *args, **kwargs):
-        notification = Notification.objects.get(pk=notification_pk)
-        notification.user_has_seen = True
-        notification.save()
+        Notification.objects.filter(
+            pk=notification_pk
+        ).update(
+            user_has_seen=True
+        )
         return HttpResponse('Success', content_type='text/plain')
  
 # Searching for user 
@@ -443,8 +406,8 @@ class CreateMessage(View):
             message.sender_user = request.user
             message.receiver_user = receiver
             message.save()
-        notification = Notification.objects.create(
-            notification_type=4,
+            
+            Notification.objects.add_dm(
             form_user=request.user,
             to_user = receiver, 
             thread=thread,
