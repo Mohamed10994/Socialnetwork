@@ -1,15 +1,14 @@
-{% extends 'landing/base.html' %}
+{% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
 
 {% block content %}
-<div class="container">
+<!-- <div class="container" style="padding-top: 40px;">
     <div class="row mt-5">
         <div class="col-md-5 col-sm-6">
             <a href="{% url 'social:post-list' %}" class="btn btn-light">Back To Feed</a>
         </div>
     </div>
-
     <div class="row justify-content-center mt-3">
         <div class="col-md-5 col-sm-12 border-bottom">
             <div>
@@ -38,7 +37,6 @@
             </div>
         </div>
     </div>
-    
     <div class="row justify-content-center mt-3 mb-5">
         <div class="col-md-5 col-sm-12">
             <form method="POST">
@@ -119,5 +117,258 @@
     {% endfor %}
     {% endif %}
     {% endfor %}
+</div> -->
+
+<style>
+    body{
+        background-color: #3A4550;
+    }
+    .panel-shadow {
+        box-shadow: rgba(0, 0, 0, 0.3) 7px 7px 7px;
+    }
+    .panel-white {
+        border: 1px solid #dddddd;
+    }
+    .panel-white  .panel-heading {
+        color: #333;
+        background-color: #fff;
+        border-color: #ddd;
+    }
+    .panel-white  .panel-footer {
+        background-color: #fff;
+        border-color: #ddd;
+    }
+    
+    .post .post-heading {
+        height: 95px;
+        padding: 20px 15px;
+    }
+    .post .post-heading .avatar {
+        width: 60px;
+        height: 60px;
+        display: block;
+        margin-right: 15px;
+    }
+    .post .post-heading .meta .title {
+        margin-bottom: 0;
+    }
+    .post .post-heading .meta .title a {
+        color: black;
+    }
+    .post .post-heading .meta .title a:hover {
+        color: #aaaaaa;
+    }
+    .post .post-heading .meta .time {
+        margin-top: 8px;
+        color: #999;
+    }
+    .post .post-image .image {
+        width: 100%;
+        height: auto;
+    }
+    .post .post-description {
+        padding: 15px;
+    }
+    .post .post-description p {
+        font-size: 14px;
+    }
+    .post .post-description .stats {
+        margin-top: 20px;
+    }
+    .post .post-description .stats .stat-item {
+        display: inline-block;
+        margin-right: 15px;
+    }
+    .post .post-description .stats .stat-item .icon {
+        margin-right: 8px;
+    }
+    .post .post-footer {
+        border-top: 1px solid #ddd;
+        padding: 15px;
+    }
+    .post .post-footer .input-group-addon a {
+        color: #454545;
+    }
+    .post .post-footer .comments-list {
+        padding: 0;
+        margin-top: 20px;
+        list-style-type: none;
+    }
+    .post .post-footer .comments-list .comment {
+        display: block;
+        width: 100%;
+        margin: 20px 0;
+    }
+    .post .post-footer .comments-list .comment .avatar {
+        width: 35px;
+        height: 35px;
+    }
+    .post .post-footer .comments-list .comment .comment-heading {
+        display: block;
+        width: 100%;
+    }
+    .post .post-footer .comments-list .comment .comment-heading .user {
+        font-size: 14px;
+        font-weight: bold;
+        display: inline;
+        margin-top: 0;
+        margin-right: 10px;
+    }
+    .post .post-footer .comments-list .comment .comment-heading .time {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 0;
+        display: inline;
+    }
+    .post .post-footer .comments-list .comment .comment-body {
+        margin-left: 50px;
+    }
+    .post .post-footer .comments-list .comment > .comments-list {
+        margin-left: 50px;
+    }    
+</style>
+<link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+
+<div class="container bootstrap snippets bootdey" style='padding-top: 40px;'>
+    <div class="row-sm-8 mt-5">
+        <div class="panel panel-white post panel-shadow" style="background-color: #fff;">
+            <div class="post-heading">
+                <div class="pull-left image">
+                    <a href="{% url 'social:profile' post.author.profile.pk %}">
+                        <img src="{{ post.author.profile.picture.url }}" class="img-circle avatar" alt="user profile image">
+                    </a>
+                </div>
+                <div class="pull-left meta">
+                    <div class="title h5">
+                        <a href="{% url 'social:profile' post.author.profile.pk %}"><b>{{ post.author }}</b></a>
+                    </div>
+                    <h6 class="text-muted time">{{ post.created_on }}</h6>
+                </div>
+                {% if request.user == post.author %}
+                <a href="{% url 'social:post-edit' post.pk %}" style="color: #333;"><i class="far fa-edit"></i></a>
+                <a href="{% url 'social:post-delete' post.pk %}" style="color: #333;"><i class="fas fa-trash"></i></a>
+                {% endif %}
+            </div> 
+            <div class="post-description"> 
+                <p>{{ post.body }}</p>
+                <div class="stats">
+                    <form method="POST" action="{% url 'social:like' post.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button class="remove-default-btn like-btn" style=" background-color: white; border: none;" type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="feather feather-heart icon-md">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                            </path>   
+                            </svg>
+                            <i><span>{{ post.likes.all.count }}</span></i> 
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="post-footer">
+                <div class=""> 
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form | crispy }}
+                        <div class="pull-right">
+                            <button type="submit" class="btn btn-primary">Comment</button>
+                        </div>
+                    </form>
+                </div>
+                <br>
+                {% for comment in comments %}
+                {% if comment.is_parent %}
+                <ul class="comments-list">
+                    <li class="comment">
+                        <a class="pull-left" href="{% url 'social:profile' comment.author.profile.pk %}">
+                            <img class="avatar" src="{{ comment.author.profile.picture.url }}" >
+                        </a>
+                        <div class="comment-body">
+                            <div class="comment-heading">
+                                <h4 class="user">{{ comment.author }}</h4>
+                                <h5 class="time">{{ comment.created_on }}</h5>
+                                {% if request.user == comment.author %}
+                                <a href="{% url 'social:comment-delete' post.pk comment.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                                {% endif %}
+                            </div>
+                            <p>{{ comment.comment }}</p>
+                            <div class="" style="padding-bottom: 30px;">              
+                                <div style="padding-left: 50px; position: absolute;">
+                                    <button class="remove-default-btn" style="border: none; background-color: white; outline: none;">
+                                        <i class="" onclick="commentReplyToggle('{{ comment.pk }}')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            class="feather 
+                                            feather-message-square icon-md">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
+                                            </path>       
+                                            </svg>
+                                        </i>
+                                    </button>
+                                </div>  
+                                <div class="stats">
+                                    <div style="position: absolute;">
+                                        <form method="POST" action="{% url 'social:comment-like' post.pk comment.pk %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.path }}">
+                                            <button class="remove-default-btn like-btn" style=" background-color: white; border: none;" type="submit">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                class="feather feather-heart icon-md">
+                                                <path
+                                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                                </path>   
+                                                </svg> 
+                                                <i><span>{{ comment.likes.all.count }}</span></i> 
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-center mt-3 mb-5 d-none" id="{{ comment.pk }}">
+                            <div class="col-md-5 col-sm-12">
+                                <form method="POST" action="{% url 'social:comment-reply' post.pk comment.pk %}">
+                                    {% csrf_token %}
+                                    {{form | crispy}}
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success mt-3">Submit!</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <ul class="comments-list">
+                            <li class="comment">
+                                {% for child_comment in comment.children %}
+                                <a class="pull-left" href="{% url 'social:profile' child_comment.author.profile.pk %}">
+                                    <img class="avatar" src="{{ child_comment.author.profile.picture.url}}" alt="avatar">
+                                </a>
+                                <div class="comment-body">
+                                    <div class="comment-heading">
+                                        <h4 class="user">{{ child_comment.author }}</h4>
+                                        <h5 class="time">{{ child_comment.created_on }}</h5>
+                                        {% if request.user == child_comment.author %}
+                                        <a href="{% url 'social:comment-delete' post.pk child_comment.pk %}" class="edit-color"><i class="fas fa-trash"></i></a>
+                                        {% endif %}
+                                    </div>
+                                    <p>{{ child_comment.comment }}</p>
+                                </div>
+                                {% endfor %}
+                            </li> 
+                        </ul>
+                    </li>
+                </ul>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+
 {% endblock content %}
