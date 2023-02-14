@@ -25,6 +25,7 @@ class Post(models.Model):
     tags = models.ManyToManyField('Tag', blank=True)
     objects = PostManager()
     
+    
     def __str__(self):
         return self.body
     
@@ -195,6 +196,9 @@ class Notification(models.Model):
     date = models.DateTimeField(default=timezone.now)
     user_has_seen = models.BooleanField(default=False)
     objects=NotificationManager()
+    def __str__(self):
+        return self.notification_type
+    
     
 # Will hold all messages between two users
 class ThreadModel(models.Model):
@@ -202,6 +206,7 @@ class ThreadModel(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
     has_unread = models.BooleanField(default=False)
     
+        
 # Will hold the data for the individual message
 class MessageModel(models.Model):
     thread = models.ForeignKey('ThreadModel', related_name='+', on_delete=models.CASCADE, blank=True, null=True)
@@ -218,6 +223,8 @@ class MessageModel(models.Model):
     
     is_read = models.BooleanField(default=False)
     
+    def __str__(self):
+        return self.body
     
 class Image(models.Model):
     image = models.ImageField(upload_to='uploads/post_photos', blank=True, null=True)

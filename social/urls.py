@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, UserSearch, ListFollowers, AddCommentLikes, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, SharedPostView, Explore, ThreadNotification, ThreadView, CreateThread, CreateMessage
+from .views import PostListView, PostDetailView, ProfileView, PostEditView, PostDeleteView, CommentDeleteView, ProfileEditView, AddFollower, RemoveFollower, AddLike, UserSearch, ListFollowers, AddCommentLikes, CommentReplyView, PostNotification, FollowNotification, RemoveNotification, ListThreads, SharedPostView, Explore, ThreadNotification, ThreadView, CreateMessage
 
 app_name = 'social'
  
@@ -28,7 +28,7 @@ urlpatterns = [
     
     path('inbox/', ListThreads.as_view(), name='inbox'),
     
-    path('inbox/create-thread', CreateThread.as_view(), name='create-thread'),
+    # path('inbox/create-thread', CreateThread.as_view(), name='create-thread'),
     
     path('inbox/thread/<int:pk>/', ThreadView.as_view(), name='thread'),
     

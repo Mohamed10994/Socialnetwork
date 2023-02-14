@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
@@ -23,10 +23,23 @@ class PostListView(LoginRequiredMixin, View):
         post_list = Post.objects.get_following_posts(
             user = request.user
         )
+                
         most_popular_posts = Post.objects.annotate(
-            num_comments=Count('comments')).order_by('-num_comments')[:10]
+            num_comments=Count('comments')).order_by('-num_comments')[:3]
         
+        posts = Paginator(post_list, 10)
+        
+        page_numb = request.GET.get('page')
+        
+        try:
+            page_obj = posts.get_page(page_numb)
+        except PageNotAnInteger:
+            page_obj = posts.page(1)
+        except EmptyPage:
+            page_obj = posts.page(posts.num_pages)
+                
         context = {
+            'page_obj': page_obj,
             'post_list': post_list,
             'shareform': share_form,
             'form': form,
@@ -129,7 +142,7 @@ class CommentReplyView(LoginRequiredMixin, View):
         if form.is_valid():
             new_comment = form.save(commit=False)
             new_comment.save_data(
-                author=request.author,
+                author=request.user,
                 post=post,
                 parent=parent_comment
             )
@@ -213,29 +226,28 @@ class AddCommentLikes(LoginRequiredMixin, View):
     
 class ProfileView(View):
     def get(self, request, pk, *args, **kwargs):
-        profile = get_object_or_404(UserProfile, pk=pk)
-
-        posts = Post.objects.filter(author=profile.user).order_by('-created_on')
+        profile = UserProfile.objects.get(pk=pk)
+        user = profile.user
+        posts = Post.objects.filter(author=user).order_by('-created_on')
         
-        images = Post.objects.filter(author=profile.user).order_by('-created_on')[:3]
-        
-        followers = profile.followers.values(
-            'profile__pk',
-            'username',
-            'profile__picture',
-        )
-        
-        is_following = profile.followers.filter(pk=request.user.pk).exists()
-
-        number_of_followers = followers.count()
-        
+        followers = profile.followers.all()
+        is_following = True if followers else False 
+        for follower in followers:
+            if follower == request.user:
+                is_following = True
+                break
+            else:
+                is_following = False
+                
+        number_of_followers = len(followers)
+        followers = profile.followers.all()
         context = {
+            'user': user,
             'profile': profile, 
             'posts': posts,
             'is_following': is_following,
             'number_of_followers': number_of_followers,
-            'followers': followers,
-            'images': images
+            'followers': followers
         }
         return render(request, 'social/profile.html', context)
         
@@ -282,6 +294,8 @@ class ListFollowers(View):
         }
         return render(request, 'social/followers_list.html', context)
     
+        
+        
 class AddLike(LoginRequiredMixin, View):
     def post(self, request, pk, *args, **kwargs):
         post = Post.objects.get(pk=pk)
@@ -350,16 +364,48 @@ class RemoveNotification(View):
         )
         return HttpResponse('Success', content_type='text/plain')
  
-# Searching for user 
-class CreateThread(View):
-    # Will display the form to enter a username
+# # Searching for user 
+# class CreateThread(View):
+#     # Will display the form to enter a username
+#     def get(self, request, *args, **kwargs):
+#         form = ThreadForm()
+#         context = {
+#             'form': form,
+#         }
+#         return render(request, 'social/create_thread.html', context)
+#     # Handle creating the thread 
+#     def post(self, request, *args, **kwargs):
+#         form = ThreadForm(request.POST)
+#         username = request.POST.get('username')
+        
+#         try:
+#             receiver = User.objects.get(username=username)
+#             if ThreadModel.objects.filter(user=request.user, receiver=receiver).exists():   
+#                 thread = ThreadModel.objects.filter(user=request.user, receiver=receiver)[0]
+#                 return redirect('social:thread', pk=thread.pk)
+#             if form.is_valid():
+#                 sender_thread = ThreadModel(
+#                     user=request.user,
+#                     receiver=receiver,
+#                 )
+#                 sender_thread.save()
+#                 thread_pk = sender_thread.pk
+#                 return redirect('social:thread', pk=thread_pk)
+#         except:
+#             messages.error(request, 'User not found.')
+#             return redirect('social:inbox')
+    
+# Our inbox to see all of our conversations
+class ListThreads(View):
     def get(self, request, *args, **kwargs):
         form = ThreadForm()
+        threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
         context = {
+            'threads': threads,
             'form': form,
         }
-        return render(request, 'social/create_thread.html', context)
-    # Handle creating the thread 
+        return render(request, 'social/inbox.html', context)
+    
     def post(self, request, *args, **kwargs):
         form = ThreadForm(request.POST)
         username = request.POST.get('username')
@@ -379,16 +425,7 @@ class CreateThread(View):
                 return redirect('social:thread', pk=thread_pk)
         except:
             messages.error(request, 'User not found.')
-            return redirect('social:create-thread')
-    
-# Our inbox to see all of our conversations
-class ListThreads(View):
-    def get(self, request, *args, **kwargs):
-        threads = ThreadModel.objects.filter(Q(user=request.user) | Q(receiver=request.user))
-        context = {
-            'threads': threads,
-        }
-        return render(request, 'social/inbox.html', context)
+            return redirect('social:inbox')
 
 # For create the message   
 class CreateMessage(View):

@@ -6,6 +6,9 @@ from django.contrib.auth import login, authenticate ,logout
 from django.contrib import messages
 from .forms import NewUserForm
 from django.urls import reverse
+from social.models import ThreadModel
+from django.db.models import Q
+
 class Index(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'landing/index.html')
@@ -47,3 +50,4 @@ def logout_request(request):
     messages.info(request, "You have successfully logged out.")
     return redirect("landing:index")
 
+        
