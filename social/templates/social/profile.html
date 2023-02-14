@@ -1,7 +1,7 @@
 {% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="">
+<div class="" style="padding-top: 40px;">
     <div class="profile-page tx-13">
         <div class="row">
             <div class="col-12 grid-margin">
@@ -41,15 +41,6 @@
                                 <a class="pt-1px d-none d-md-block" href="#">Timeline</a>
                             </li>
                             <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="feather feather-user mr-1 icon-md">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <a class="pt-1px d-none d-md-block" href="#">About</a>
-                            </li>
-                            <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users mr-1 icon-md">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
@@ -60,20 +51,19 @@
                             </li>
                             <li class="header-link-item ml-3 pl-3 border-left d-flex align-items-center">
                                 <div>
-                                    {% if user == request.user %}
-                                    {% else %}
-                                    {% if is_following %}
-                                    
-                                    <form method="POST" action="{% url 'social:remove-follower' profile.pk %}">
-                                        {% csrf_token %}
-                                        <button class="btn btn-outline-danger" type="submit">UnFollow</button>
-                                    </form>
-                                    {% else %}
-                                    <form method="POST" action="{% url 'social:add-follower' profile.pk %}">
-                                        {% csrf_token %}
-                                        <button class="btn btn-outline-success" type="submit">Follow</button>
-                                    </form>
-                                    {% endif %}
+                                    {% if profile.user != request.user %}
+                                        {% if is_following %}
+                                            
+                                            <form method="POST" action="{% url 'social:remove-follower' profile.pk %}">
+                                                {% csrf_token %}
+                                                <button class="btn btn-outline-danger" type="submit">UnFollow</button>
+                                            </form>
+                                            {% else %}
+                                            <form method="POST" action="{% url 'social:add-follower' profile.pk %}">
+                                                {% csrf_token %}
+                                                <button class="btn btn-outline-success" type="submit">Follow</button>
+                                            </form>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                             </li>
@@ -215,8 +205,8 @@
                                 {% for follower in followers %}
                                 <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center hover-pointer">    
-                                        <a href="{% url 'social:profile' follower.profile__pk %}">
-                                            <img class="img-xs rounded-circle" src="{{ follower.profile__picture.url }}" alt="">
+                                        <a href="{% url 'social:profile' follower.profile.pk %}">
+                                            <img class="img-xs rounded-circle" src="{{ follower.profile.picture.url }}" alt="">
                                         </a>                     
                                         <div class="ml-2">
                                             <p>{{ follower.username }}</p>
