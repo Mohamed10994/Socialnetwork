@@ -1,55 +1,62 @@
 {% load custom_tags %}
-<div class="">
-  <nav class="navbar navbar-expand-lg navbar-light">
-    <div class="container-fluid">
-      <a class="navbar-brand" {% if user.is_authenticated %} href="{% url 'social:post-list' %}" {% else %}
-        href="{% url 'landing:index' %}" {% endif %}>
-        <i class="fas fa-comment"></i>
-        Social Network
+  <!-- Navbar -->
+<nav class="navbar navbar-expand fixed-top navbar-light bg-light">
+  <div class="container-fluid justify-content-between">
+    <!-- Left elements -->
+    <div class="d-flex my-2 my-sm-0">
+      <!-- Toggler -->
+      <!-- Brand -->
+      <a class="navbar-brand me-2 mb-1 d-flex align-items-center" {% if user.is_authenticated %} href="{% url 'social:post-list' %}" {% else %}
+      href="{% url 'landing:index' %}" {% endif %}>
+        <i class="fas fa-comment" style="color: #17a2b8;">Smokey</i>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
-        aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-   
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0" style=" margin-left: 450px;">
-          <a href="{% url 'social:explore' %}" style="text-decoration: none; opacity: 0.8; color: #17a2b8;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="35" fill="currentColor" class="bi bi-hash" viewBox="0 0 16 16" >
-              <path d="M8.39 12.648a1.32 1.32 0 0 0-.015.18c0 .305.21.508.5.508.266 0 .492-.172.555-.477l.554-2.703h1.204c.421 0 .617-.234.617-.547 0-.312-.188-.53-.617-.53h-.985l.516-2.524h1.265c.43 0 .618-.227.618-.547 0-.313-.188-.524-.618-.524h-1.046l.476-2.304a1.06 1.06 0 0 0 .016-.164.51.51 0 0 0-.516-.516.54.54 0 0 0-.539.43l-.523 2.554H7.617l.477-2.304c.008-.04.015-.118.015-.164a.512.512 0 0 0-.523-.516.539.539 0 0 0-.531.43L6.53 5.484H5.414c-.43 0-.617.22-.617.532 0 .312.187.539.617.539h.906l-.515 2.523H4.609c-.421 0-.609.219-.609.531 0 .313.188.547.61.547h.976l-.516 2.492c-.008.04-.015.125-.015.18 0 .305.21.508.5.508.265 0 .492-.172.554-.477l.555-2.703h2.242l-.515 2.492zm-1-6.109h2.266l-.515 2.563H6.859l.532-2.563z"/>
-            </svg>
-          </a>
-        </ul>
-        <form class="d-flex" method="GET" action="{% url 'social:profile-search' %}">
-          <div class="input-group">
-            <span class="input-group-text" id="basic-addon1">@</span>
-            <input type="text" class="form-control" placeholder="Username" aria-label="Username"
-              aria-describedby="basic-addon1" name="query" value="{{ request.GET.query }}">
-              <button style="border: none;" type="submit">
-                <i class="fas fa-search"></i>
-              </button>
-          </div>
-        </form>
-        {% if user.is_authenticated %}
-        <div class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle text-dark" data-bs-toggle="dropdown" href="{% url 'social:profile' user.profile.pk %}" role="buton"
-            aria-expanded="false"><i class="fas fa-user"></i></a>
-          <ul class="dropdown-menu">
-            <li>
-              <a class="dropdown-item" href="{% url 'social:profile' request.user.profile.pk %}">Profile</a>
-              <a class="dropdown-item" href="/logout">Logout</a>
-            </li>
-          </ul>
-        </div>
-        <div class="nav-item inbox-icon-container">
-          <a href="{% url 'social:inbox'%}" class="inbox-icon"><i class="far fa-paper-plane"></i></a>
-        </div>
-        <div class="nav-item">
-          {% show_notifications %}
-        {% endif %}
-        </div>
-      </div>
+      <!-- Search form -->
+      <form class="input-group w-auto my-auto d-none d-sm-flex" method="GET" action="{% url 'social:profile-search' %}">
+        <input autocomplete="off" type="search" class="form-control rounded" style="min-width: 125px;"  placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" name="query" value="{{ request.GET.query }}"/>
+        <span class="input-group-text border-0 d-none d-lg-flex"><button style="border: none;" type="submit"><i class="fas fa-search"></i></button></i></span>
+      </form>
     </div>
-  </nav>
-</div>
+    {% if user.is_authenticated %}
+    <ul class="navbar-nav flex-row d-none d-md-flex">
+      <a href="{% url 'social:explore' %}" style="text-decoration: none; opacity: 0.8; color: #17a2b8;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="35" fill="currentColor" class="bi bi-hash" viewBox="0 0 16 16" >
+          <path d="M8.39 12.648a1.32 1.32 0 0 0-.015.18c0 .305.21.508.5.508.266 0 .492-.172.555-.477l.554-2.703h1.204c.421 0 .617-.234.617-.547 0-.312-.188-.53-.617-.53h-.985l.516-2.524h1.265c.43 0 .618-.227.618-.547 0-.313-.188-.524-.618-.524h-1.046l.476-2.304a1.06 1.06 0 0 0 .016-.164.51.51 0 0 0-.516-.516.54.54 0 0 0-.539.43l-.523 2.554H7.617l.477-2.304c.008-.04.015-.118.015-.164a.512.512 0 0 0-.523-.516.539.539 0 0 0-.531.43L6.53 5.484H5.414c-.43 0-.617.22-.617.532 0 .312.187.539.617.539h.906l-.515 2.523H4.609c-.421 0-.609.219-.609.531 0 .313.188.547.61.547h.976l-.516 2.492c-.008.04-.015.125-.015.18 0 .305.21.508.5.508.265 0 .492-.172.554-.477l.555-2.703h2.242l-.515 2.492zm-1-6.109h2.266l-.515 2.563H6.859l.532-2.563z"/>
+        </svg>
+      </a>
+    </ul>
+    <ul class="navbar-nav flex-row">
+      <li class="nav-item me-3 me-lg-1">
+        <a class="nav-link d-sm-flex align-items-sm-center" href="{% url 'social:profile' user.profile.pk %}">
+          <img src="{{request.user.profile.picture.url}}" class="rounded-circle" height="22" alt=""
+            loading="lazy"/>
+          <strong class="d-none d-sm-block ms-1">{{request.user.username}}</strong>
+        </a>
+      </li>
+      <li class="nav-item dropdown me-3 me-lg-1">
+        <a class="nav-link" href="{% url 'social:inbox'%}" id="navbarDropdownMenuLink" role="button" aria-expanded="false">
+          <i class="fas fa-comments fa-lg"></i>
+          <span class="badge rounded-pill badge-notification bg-danger">6</span>
+        </a>
+      </li>
+      <li class="nav-item dropdown me-3 me-lg-1">
+          {% show_notifications %}
+      </li>
+      <li class="nav-item dropdown me-3 me-lg-1">
+          <li class="bi bi-box-arrow-left"><a class="dropdown-item" href="/logout">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0v2z"></path>
+              <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"></path>
+            </svg>
+            Logout
+        </a>
+        </li>
+      </li>
+    </ul>
+
+    {% endif %}
+    <!-- Right elements -->
+  </div>
+</nav>
+<!-- Navbar -->
+
 
