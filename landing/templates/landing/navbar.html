@@ -11,12 +11,12 @@
         <i class="fas fa-comment" style="color: #17a2b8;">Smokey</i>
       </a>
       <!-- Search form -->
+      {% if user.is_authenticated %}
       <form class="input-group w-auto my-auto d-none d-sm-flex" method="GET" action="{% url 'social:profile-search' %}">
         <input autocomplete="off" type="search" class="form-control rounded" style="min-width: 125px;"  placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" name="query" value="{{ request.GET.query }}"/>
         <span class="input-group-text border-0 d-none d-lg-flex"><button style="border: none;" type="submit"><i class="fas fa-search"></i></button></i></span>
       </form>
     </div>
-    {% if user.is_authenticated %}
     <ul class="navbar-nav flex-row d-none d-md-flex">
       <a href="{% url 'social:explore' %}" style="text-decoration: none; opacity: 0.8; color: #17a2b8;">
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="35" fill="currentColor" class="bi bi-hash" viewBox="0 0 16 16" >
@@ -38,9 +38,9 @@
           <span class="badge rounded-pill badge-notification bg-danger">6</span>
         </a>
       </li>
-      <li class="nav-item dropdown me-3 me-lg-1">
-          {% show_notifications %}
-      </li>
+      <div class="icon me-3 me-lg-1" id="bell">
+          <i class="fas fa-bell fa-lg">{% show_notifications %}</i>
+      </div>
       <li class="nav-item dropdown me-3 me-lg-1">
           <li class="bi bi-box-arrow-left"><a class="dropdown-item" href="/logout">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">

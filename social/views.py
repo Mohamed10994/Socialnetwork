@@ -105,9 +105,8 @@ class PostDetailView(LoginRequiredMixin, View):
     
     def post(self, request, pk, *args, **kwargs):
         form = CommentForm(request.POST)
-        
         post = get_object_or_404(Post, pk=pk)
- 
+        comments = Comment.objects.related_post(post=post)
         if form.is_valid():
             new_comment = form.save(commit=False)
             new_comment.save_data(
@@ -115,15 +114,15 @@ class PostDetailView(LoginRequiredMixin, View):
                 post=post
             )
             new_comment.create_tags()
-            
-        comments = Comment.objects.related_post(post=post)
-        
+       
         Notification.objects.add_comment(
             form_user=request.user,
             to_user=post.author,
             post=post
         )
         
+        form = CommentForm()
+
         context = {
             'post': post,
             'form': form,
@@ -213,12 +212,12 @@ class AddCommentLikes(LoginRequiredMixin, View):
         if comment.likes.filter(pk=request.user.pk).exists():
             comment.likes.remove(request.user)
         else:
+            comment.likes.add(request.user)
             Notification.objects.add_like(
                 form_user=request.user,
                 to_user=comment.author,
                 comment=comment
             )
-            comment.likes.add(request.user)
 
         next = request.POST.get('next', '/  ')
         return HttpResponseRedirect(next)
@@ -229,7 +228,8 @@ class ProfileView(View):
         profile = UserProfile.objects.get(pk=pk)
         user = profile.user
         posts = Post.objects.filter(author=user).order_by('-created_on')
-        
+        images = Post.objects.filter(author=user).order_by('-created_on')[:3]
+
         followers = profile.followers.all()
         is_following = True if followers else False 
         for follower in followers:
@@ -247,7 +247,8 @@ class ProfileView(View):
             'posts': posts,
             'is_following': is_following,
             'number_of_followers': number_of_followers,
-            'followers': followers
+            'followers': followers,
+            'images': images,
         }
         return render(request, 'social/profile.html', context)
         
@@ -303,12 +304,12 @@ class AddLike(LoginRequiredMixin, View):
         if post.likes.filter(pk=request.user.pk).exists():
             post.likes.remove(request.user)
         else:
+            post.likes.add(request.user)
             Notification.objects.add_like(
                 form_user=request.user,
                 to_user=post.author,
                 post=post
             )
-            post.likes.add(request.user)
 
         next = request.POST.get('next', '/social')
         
@@ -347,13 +348,13 @@ class FollowNotification(View):
         return redirect('social:profile', pk=profile_pk)
     
 class ThreadNotification(View):
-    def get(self, request,notification_pk, object_k, *args, **kwargs):
+    def get(self, request,notification_pk, object_pk, *args, **kwargs):
         Notification.objects.filter(
             pk=notification_pk
         ).update(
             user_has_seen=True
         )
-        return redirect('social:thread', pk=object_k) 
+        return redirect('social:thread', pk=object_pk) 
     
 class RemoveNotification(View):
     def delete(self, request, notification_pk, *args, **kwargs):

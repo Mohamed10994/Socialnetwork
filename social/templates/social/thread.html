@@ -1,103 +1,6 @@
 {% extends 'social/base.html' %}
 {% load crispy_forms_tags %}
-{% block content %}
-  <!-- <div class="container">
-    <div class="row">
-      <div class="card col-md-12 mt-5 p-3 shadow-sm">
-        <h5>@{{ thread.receiver }}</h5>
-      </div>
-    </div>
-    {% if message_list.all.count == 0 %}
-    <div class="row my-5">
-      <div class="col-md-12">
-        <p class="empty-text">No Messages</p>
-      </div>
-    </div>
-    {% endif %}
-    {% for message in message_list %}
-    <div class="row">
-      <div class="col-md-12 my-1">
-        {% if message.sender_user == request.user %}
-      <div class="sent-message my-3">
-        <p>{{ message.body }}</p>
-      </div>
-    {% elif message.receiver_user == request.user %}
-    <div class="received-message my-3">
-      <p>{{ message.body }}</p>
-    </div>
-    {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-  <div class="row">
-    <div class="card col-md-12 p-3 shadow-sm">
-      <form method="POST" action="{% url 'social:create-message' thread.pk %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form | crispy }}
-        <div class="d-grid gap-2 mt-3">
-          <button class="btn btn-light" type="submit">Send Message</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div> -->
-
-
-
-
-<!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.6.8-fix/jquery.nicescroll.min.js"></script>
-<div class="container">
-<div class="content container-fluid bootstrap snippets bootdey">
-      <div class="row row-broken">
-        <div class="col-sm-9 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
-          <div class="col-inside-lg decor-default">
-            <div class="chat-body">
-              <h6>{{ thread.receiver }}</h6>
-              {% for message in message_list %}
-              {% if message.sender_user == request.user %}
-              {% if thread.receiver != user %}
-              <div class="answer left">
-                <div class="avatar">
-                  <img src="{{ thread.receiver.profile.picture.url }}" alt="User name">
-                  <div class="status offline"></div>
-                </div>
-              {% endif %}
-                <div class="name"></div>
-                <div class="text">
-                  <p>{{ message.body }}</p>
-                </div>
-                <div class="time">5 min ago</div>
-              </div>
-              {% elif message.receiver_user == request.user %}
-              <div class="answer right">
-                {% if thread.receiver != user %}
-                <div class="avatar">
-                  <img src="{{ thread.user.profile.picture.url }}" alt="User name">
-                  <div class="status offline"></div>
-                </div>
-                {% endif %}
-                <div class="name"></div>
-                <div class="text">
-                  <p>{{message.body}}</p>
-                </div>
-                <div class="time">5 min ago</div>
-              </div>
-              {% endif %}
-              {% endfor %}
-              <div class="answer-add">
-                <form action="{% url 'social:create-message' thread.pk %}" method="POST">
-                  {% csrf_token %}
-                  {{ form | crispy }}
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
- </div> -->
- 
+{% block content %} 
  <main class="content">
   <div class="container p-0">
   <h1 class="h3 mb-3">Messages</h1>
@@ -162,29 +65,28 @@
           </div>
         </div>
         {% endif %}
-
         <div class="position-relative">
           <div class="chat-messages p-4">
             {% for message in message_list %}
-            {% if message.receiver_user == request.user %}
+            {% if message.sender_user != thread.user %}
             <div class="chat-message-right pb-4">
               <div>
-                <img src="{{ message.receiver_user.profile.picture.url}}" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
+                <img src="{{ thread.receiver.profile.picture.url}}" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40">
                 <div class="text-muted small text-nowrap mt-2">2:33 am</div>
               </div>
               <div class="flex-shrink-1 bg-light rounded py-2 px-3 mr-3">
-                <div class="font-weight-bold mb-1">{{ message.receiver_user }}</div>
+                <div class="font-weight-bold mb-1">{{ thread.receiver}}</div>
                 {{ message.body }}
               </div>
             </div>
-            {% elif message.sender_user == request.user %}
+            {% elif message.receiver_user != thread.user %}
             <div class="chat-message-left pb-4">
               <div>
-                <img src="{{ message.sender_user.profile.picture.url }}" class="rounded-circle mr-1" alt="Sharon Lessman" width="40" height="40">
+                <img src="{{ thread.user.profile.picture.url }}" class="rounded-circle mr-1" alt="Sharon Lessman" width="40" height="40">
                 <div class="text-muted small text-nowrap mt-2">2:34 am</div>
               </div>
               <div class="flex-shrink-1 bg-light rounded py-2 px-3 ml-3">
-                <div class="font-weight-bold mb-1">{{ message.sender_user }}</div>
+                <div class="font-weight-bold mb-1">{{ thread.user }}</div>
                 {{ message.body }}
               </div>
             </div>
@@ -192,7 +94,6 @@
             {% endfor %}
           </div>
         </div>
-
         <div class="flex-grow-0 py-3 px-4 border-top">
           <div class="input-group">
             <form method="POST" action="{% url 'social:create-message' thread.pk %}" enctype="multipart/form-data">
@@ -202,7 +103,6 @@
             </form>
           </div>
         </div>
-
       </div>
     </div>
   </div>

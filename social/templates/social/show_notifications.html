@@ -7,14 +7,11 @@
     }
 
     .icon {
-        cursor: pointer;
         padding-top: 9px;
         color: #000;
         
         
     }
-
-
 
     .icon img {
         display: inline-block;
@@ -23,19 +20,42 @@
         
     }
 
-    .icon:hover {
-        opacity: .7;
+    .notifications::-webkit-scrollbar-track
+    {
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        background-color: #F5F5F5;
+        border-radius: 5px
+    }
+    
+    .notifications::-webkit-scrollbar
+    {
+        width: 10px;
+        background-color: #F5F5F5;
+        border-radius: 5px
+    }
+    
+    .notifications::-webkit-scrollbar-thumb
+    {
+        background-color: black;
+        border: 2px solid black;
+        border-radius: 5px
     }
     .notifications {
         width: 300px;
         height: 0px;
-        opacity: 0;
+        border-radius: 10px;
+        transition: 0.5s;
         position: absolute;
+        overflow-y: scroll;
         top: 63px;
         right: 62px;
-        border-radius: 5px 0px 5px 5px;
-        background-color: #fff;
-        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
+        padding: 0px;
+        margin-top: 5px;
+        background-color: #F4F4F4;
+        -webkit-box-shadow: 10px 10px 23px 0px rgba(0,0,0,0.2);
+        -moz-box-shadow: 10px 10px 23px 0px rgba(0,0,0,0.1);
+        box-shadow: 10px 10px 23px 0px rgba(0,0,0,0.1);
+        cursor: context-menu;
     }
 
     .notifications h2 {
@@ -85,19 +105,19 @@
     <div class="dropdown-content d-none" id="notification-container">
         {% for notification in notifications %}
             {% if notification.post %}
-                {% if notification_type == add_like %}
+                {% if notification.NOTIFICATION_TYPE_LIKE %}
                 <div class="dropdown-item-parent">  
                     <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}">@{{ notification.form_user }} liked your post</a>
                     <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
                 </div>
-                {% elif notification.notification_type == add_comment %}
+                {% elif notification.NOTIFICATION_TYPE_COMMENT %}
                 <div class="dropdown-item-parent">
                     <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}">@{{ notification.form_user }} comment on your post</a>
                     <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
                 </div>
                 {% endif %}
             {% elif notification.comment %}
-                {% if notification.notification_type == add_like %}
+                {% if notification.NOTIFICATION_TYPE_LIKE %}
                 <div class="dropdown-item-parent">
                     <a href="{% url 'social:post-notification' notification.pk notification.comment.post.pk %}">@{{ notification.form_user }} replied to your comment</a>
                     <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
@@ -116,68 +136,94 @@
         {% endif %}
         {% endfor %}
     </div>
-</div>
- -->
-
-<div class="icon me-3 me-lg-1" id="bell">
-    <i class="fas fa-bell fa-lg"></i>
-</div>
+</div> -->
+<span class="badge rounded-pill badge-notification bg-danger" onclick="showNotifications()">{{ notifications.count }}</span>
 <div>
-{% for notification in notifications %}
-    {% if notification.post %}
-        {% if notification_type == add_like %}
-            <div class="notifications" id="box">
-                <h2>Notifications - <span  onclick="showNotifications()">{{ notifications.count }}</span></h2>
-                <div class="notifications-item"> 
-                    <div class="pull-left image">
-                        <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}"><img src="{{ notification.form_user.profile.picture.url }}" alt="img"></a>
-                    </div>
-                    <div class="text">
-                        <div>
-                            <h4>{{ notification.form_user }}</h4>
-                            <p>{{ notification.form_user }} liked your post</p>
-                        </div>
-                    </div>
+    <div class="notifications" id="box">
+        <h2>Notifications - <span  onclick="showNotifications()">{{ notifications.count }}</span></h2>
+        {% for notification in notifications %}
+        {% if notification.post %}
+        {% if notification.NOTIFICATION_TYPE_LIKE %}
+        <div class="notifications-item"> 
+            <div class="pull-left image">
+                <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}"><img src="{{ notification.form_user.profile.picture.url }}"></a>
+            </div>
+            <div class="text">
+                <div>
+                    <h4>{{ notification.form_user }}</h4>
+                    <p>{{ notification.form_user }} liked your post</p>
+                </div>
+            </div>
+            <div>
+                <span onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
+            </div>
+        </div>
+        {% elif notification.NOTIFICATION_TYPE_COMMENT %}
+        <div class="notifications-item"> 
+            <div class="pull-left image">
+                <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}"><img src="{{ notification.form_user.profile.picture.url }}" alt="img"></a>
+            </div>
+            <div class="text">
+                <div>
+                    <h4>{{ notification.form_user }}</h4>
+                    <p>{{ notification.form_user }} Comment in your post</p>
+                </div>
+            </div>
+            <div>
+                <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
+            </div>
+        </div>
+        {% endif %}
+    {% elif notification.comment %}
+        {% if notification.NOTIFICATION_TYPE_LIKE %}
+        <div class="notifications-item"> 
+            <div class="pull-left image">
+                <a href="{% url 'social:post-notification' notification.pk notification.comment.post.pk %}"><img src="{{ notification.form_user.profile.picture.url }}" alt="img"></a>
+            </div>
+            <div class="text">
+                <div>
+                    <h4>{{ notification.form_user }}</h4>
+                    <p>{{ notification.form_user }} Replied to Your Comment</p>
+                </div>
+            </div>
+            <div>
+                <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
+            </div>
+        </div>
+        {% endif %}
+            {% elif notification.thread %}
+            <div class="notifications-item"> 
+                <div class="pull-left image">
+                    <a href="{% url 'social:thread-notification' notification.pk notification.thread.pk %}"><img src="{{ notification.form_user.profile.picture.url }}" alt="img"></a>
+                </div>
+                <div class="text">
                     <div>
-                        <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
+                        <h4>{{ notification.form_user }}</h4>
+                        <p>{{ notification.form_user }} Sent you a message</p>
                     </div>
                 </div>
-                {% elif notification.notification_type == add_comment %}
-                <div class="notifications-item"> <img src="https://img.icons8.com/flat_round/64/000000/vote-badge.png" alt="img">
-                    <div class="text">
-                        <h4>{{ notification.form_user }}</h4>
-                        <a href="{% url 'social:post-notification' notification.pk notification.post.pk %}"><p>{{ notification.form_user }} commented on your post</p></a>
-                    </div>
-                </div>
-                {% endif %}
-            {% elif notification.comment %}
-                {% if notification.notification_type == add_comment %}
-                    <div class="notifications-item"> <img src="https://img.icons8.com/flat_round/64/000000/vote-badge.png" alt="img">
-                        <div class="text">
-                            <h4>{{ notification.form_user }}</h4>
-                            <a href="{% url 'social:post-notification' notification.pk notification.comment.post.pk %}"><p>{{ notification.form_user }} liked your comment</p></a>
-                        </div>
-                    </div>
-                {% elif notification.notification_type == Comment %}
-                    <div class="notifications-item"> <img src="https://img.icons8.com/flat_round/64/000000/vote-badge.png" alt="img">
-                        <div class="text">
-                            <h4>{{ notification.form_user }}</h4>
-                            <a href="{% url 'social:post-notification' notification.pk notification.comment.post.pk %}"><p>{{ notification.form_user }} liked your comment</p></a>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% else %}
-                <div class="notifications-item"> <img src="https://img.icons8.com/flat_round/64/000000/vote-badge.png" alt="img">
-                    <div class="text">
-                        <h4>{{ notification.form_user }}</h4>
-                        <a href="{% url 'social:post-notification' notification.pk notification.form_user.profile.pk %}"><p>{{ notification.form_user }} has started following you</p></a>
-                        
-                    </div>
+                <div>
                     <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
                 </div>
-            </div>  
-    {% endif %}
+            </div>
+        {% else %}
+        <div class="notifications-item"> 
+            <div class="pull-left image">
+                <a href="{% url 'social:follow-notification' notification.pk notification.form_user.profile.pk %}"><img src="{{ notification.form_user.profile.picture.url }}" alt="img"></a>
+            </div>
+            <div class="text">
+                <div>
+                    <h4>{{ notification.form_user }}</h4>
+                    <p>{{ notification.form_user }} has started following you</p>
+                </div>
+            </div>
+            <div>
+                <span class="dropdown-item-close" onclick="removeNotification(`{% url 'social:notification-delete' notification.pk %}`, `{{ request.path }}`)">&times;</span>
+            </div>
+        </div>
+{% endif %}
 {% endfor %}
+    </div>
 </div>
 
 <script>
