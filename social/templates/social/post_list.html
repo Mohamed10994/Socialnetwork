@@ -195,11 +195,11 @@
                                 {% for profile in profile_list %}
                                 <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
                                     <div class="d-flex align-items-center hover-pointer">    
-                                        <a href="{% url 'social:profile' profile.pk %}">
-                                            <img class="img-xs rounded-circle" src="{{ profile.picture.url }}" alt="">
+                                        <a href="{% url 'social:profile' profile.profile.pk %}">
+                                            <img class="img-xs rounded-circle" src="{{ profile.profile.picture.url }}" alt="">
                                         </a>                     
                                         <div class="ml-2">
-                                            <p>{{ profile.user }}</p>
+                                            <p>{{ profile.username }}</p>
                                         </div>
                                     </div>
                                 </div>

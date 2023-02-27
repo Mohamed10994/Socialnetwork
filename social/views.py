@@ -17,9 +17,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 class PostListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
+        profile = UserProfile.objects.get(user = request.user)
         form = PostForm()
         share_form = SharedForm()
-        profile_list = UserProfile.objects.all()[:5]
+        profile_list = profile.followers.all()[:5]
         post_list = Post.objects.get_following_posts(
             user = request.user
         )
@@ -37,7 +38,9 @@ class PostListView(LoginRequiredMixin, View):
             page_obj = posts.page(1)
         except EmptyPage:
             page_obj = posts.page(posts.num_pages)
-                
+        
+        form = PostForm()
+
         context = {
             'page_obj': page_obj,
             'post_list': post_list,
@@ -51,7 +54,7 @@ class PostListView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         share_form = SharedForm()
         
-        posts = Post.objects.get_following_posts(
+        post_list = Post.objects.get_following_posts(
             user = request.user
         )
         
@@ -76,10 +79,9 @@ class PostListView(LoginRequiredMixin, View):
                 new_post.image.add(img)
                 
 
-        form = PostForm()
-        
+        form = PostForm(request.POST, request.FILES)        
         context = {
-            'post_list': posts,
+            'post_list': post_list,
             'shareform': share_form,
             'form': form,
             'profile_list': profile_list,
