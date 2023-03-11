@@ -2,9 +2,9 @@
 
 ## About
 
-* A simple Django App that allows registered users to post social/posts to their profiles, with the option to update/delete their posts.
+* Django App that allows registered users to post social/posts to their profiles, with the option to update/delete their posts.
 * The app has a following/followers system where the user can choose whose posts should appear on their homepage.
-* Comments system on users' posts, with the option to update/delete their comments.
+* Comments and Replies system on users' posts, with the option to update/delete their comments and replies.
 * Like/Unlike system on users's posts.
 * Notifications for user's new comments, reply, likes, messages and following.
 
@@ -17,8 +17,8 @@
     * CSS
     * Javascript (JQuery)
     * Bootstrap
-2. Back End (Python3.6.x):
-    * Django 4.1.3.
+2. Back End (Python3.8.10):
+    * Django 4.1.3
     * django-Crispy-forms
     * Django-Notifications
 
