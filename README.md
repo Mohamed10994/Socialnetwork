@@ -20,15 +20,43 @@ This is a social media app built using Python and Django framework. The app prov
 
 ## Installation
 
-1. `https://github.com/Mohamed10994/Socialnetwork.git` to clone the app from GitHub.com.
-2. `python3 -m venv socialnetwork_venv` to create a new virtual environment.
-3. `source socialnetwork_venv/Scripts/activate` to activate the virtual environment.
-4. `pip install -r requirements.txt` to install the required software.
-5. `python manage.py makemigrations` to set the database migrations.
-6. `python manage.py migrate` to run the database migrations.
-7. `python manage.py runserver` to run the server on the default port.
+1. Clone the repository
 
-The app will run on <http://127.0.0.1:8000> (<http://localhost:8000>) by default.
+```
+git clone https://github.com/Mohamed10994/Socialnetwork.git
+```
+
+2. Navigate into the project directory
+
+```
+cd Socialnetwork
+```
+
+3. Create a virtual environment
+
+```
+python -m venv env
+```
+
+4. Activate the virtual environment
+
+```
+source env/bin/activate
+```
+
+5. Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+6. Run the app
+
+```
+python manage.py runserver
+```
+
+7. Open the app in your browser at [http://localhost:8000](http://localhost:8000)
 
 ---
 
