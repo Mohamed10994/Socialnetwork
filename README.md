@@ -59,7 +59,60 @@ python manage.py runserver
 7. Open the app in your browser at [http://localhost:8000](http://localhost:8000)
 
 ---
+## Usage
 
+### Registering a new user
+
+1. Click on the "Register" link 
+2. Fill in the registration form with your details
+3. Click on the "Register" button to submit the form
+
+### Logging in
+
+1. Click on the "Login" link 
+2. Enter your email address and password
+3. Click on the "Login" button to log into the app
+
+### Posting
+
+1. Enter your post details
+2. Click on the "Post" button to submit your post
+
+### Commenting
+
+1. Click on the "Comment" button below a post
+2. Enter your comment details
+3. Click on the "Comment" button to submit your comment
+
+### Liking
+
+1. Click on the "Like" button below a post
+2. The number of likes will increase by one
+
+### Sharing
+
+1. Click on the "Share" button below a post
+2. A new post form will pre-populate with the original post's details
+3. You can edit the post details if you wish
+4. Click on the "Post" button to submit your shared post
+
+### Following
+
+1. Click on the "Follow" button on a user's profile
+2. You will start seeing the user's posts in your feed
+
+### Editing profile
+
+1. Click on the "Edit Profile" link in profile
+2. Edit your profile details as desired
+3. Click on the "Save" button to save your changes
+
+### Viewing profiles
+
+1. Click on a user's profile picture or name
+2. You will be taken to their profile page where you can view their posts and follow them
+
+---
 ## Screenshots of the website
 
 1. Home Page.
