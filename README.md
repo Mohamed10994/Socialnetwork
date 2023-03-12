@@ -1,12 +1,6 @@
 # Socialnetwork
 
-## About
-
-* Django App that allows registered users to post social/posts to their profiles, with the option to update/delete their posts.
-* The app has a following/followers system where the user can choose whose posts should appear on their homepage.
-* Comments and Replies system on users' posts, with the option to update/delete their comments and replies.
-* Like/Unlike system on users's posts.
-* Notifications for user's new comments, reply, likes, messages and following.
+This is a social media app built using Python and Django framework. The app provides features like posting, commenting, liking and sharing posts. It also allows users to follow other users and see their feed. Users can also edit their profiles and view other user profiles.
 
 ---
 
