@@ -134,3 +134,6 @@ python manage.py runserver
     ![My Profile](/social/static/social/screenshots/6.JPG)
 
 ---
+## Credits
+
+This app was built by [Mohamed Mostafa](https://github.com/Mohamed10994).
